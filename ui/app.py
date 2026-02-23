@@ -43,7 +43,33 @@ def slabel(s):
     if s >= .45: return "Moderate"
     return "Weak"
 
-st.markdown(f"""
+@st.cache_data(ttl=10)
+def fetch_stats():
+    """Cached fetch of basic counts to speed up sidebar reruns."""
+    rd, _ = api("get", "/resumes/")
+    jd_s, _ = api("get", "/jobs/")
+    return (rd["total"] if rd else 0), (jd_s["total"] if jd_s else 0)
+
+@st.cache_data(ttl=60)
+def check_health():
+    """Cached health check."""
+    health, _ = api("get", "/health")
+    return bool(health)
+
+@st.cache_data(ttl=30)
+def fetch_jobs():
+    """Cached jobs list."""
+    res, err = api("get", "/jobs/")
+    return res.get("jobs", []) if res else [], err
+
+@st.cache_data(ttl=30)
+def fetch_ranking_results(job_id):
+    """Cached ranking results."""
+    res, err = api("get", f"/rank/{job_id}/results")
+    return res, err
+
+def inject_custom_css():
+    st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 *{{box-sizing:border-box;}}
@@ -53,13 +79,15 @@ html,body,[data-testid="stAppViewContainer"],[data-testid="stMain"]{{
   color:{T2}!important;
 }}
 [data-testid="stMain"] .block-container{{
-  padding:1.75rem 2.25rem!important;max-width:1500px!important;
+  padding:1.5rem 2.25rem!important;max-width:1500px!important;
 }}
-[data-testid="stSidebar"]{{
-  background:{SURFACE}!important;
-  border-right:1px solid {BORDER}!important;
-  box-shadow:2px 0 20px rgba(0,0,0,.05)!important;
+header[data-testid="stHeader"], [data-testid="stHeader"], [data-testid="stAppHeader"] {{
+  display: none !important;
+  height: 0px !important;
 }}
+[data-testid="stSidebarContent"]{{padding-top:0px!important;}}
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{{padding-top:0px!important;}}
+/* ... (rest of the style code is preserved by the tool) ... */
 [data-testid="stSidebar"] *{{font-family:'Inter',sans-serif!important;}}
 [data-testid="stSidebar"] .stRadio>div{{gap:2px!important;}}
 [data-testid="stSidebar"] .stRadio label{{
@@ -136,6 +164,9 @@ hr{{border-color:{BORDER}!important;}}
 </style>
 """, unsafe_allow_html=True)
 
+# Run style injection
+inject_custom_css()
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def api(method, path, **kw):
@@ -171,24 +202,21 @@ def info_card(content):
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown(f'<div style="padding:1.5rem 1rem 1.25rem;border-bottom:1px solid {BORDER};margin-bottom:.75rem;"><div style="font-size:1.0625rem;font-weight:800;color:{T1};letter-spacing:-.02em;">Resume Screening</div><div style="font-size:.72rem;color:{T4};margin-top:3px;font-weight:500;">AI-Assisted Candidate Review</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="padding:0.5rem 1rem 1rem;border-bottom:1px solid {BORDER};margin-bottom:.75rem;"><div style="font-size:1.0625rem;font-weight:800;color:{T1};letter-spacing:-.02em;">Resume Screening</div><div style="font-size:.72rem;color:{T4};margin-top:3px;font-weight:500;">AI-Assisted Candidate Review</div></div>', unsafe_allow_html=True)
 
     page = st.radio("nav", ["Input","Results","Explanations","Fairness Audit","Feedback"], label_visibility="collapsed")
 
     st.markdown(f'<div style="margin:1rem 0;border-top:1px solid {BORDER};"></div>', unsafe_allow_html=True)
 
-    health, _ = api("get", "/health")
-    if health:
+    is_online = check_health()
+    if is_online:
         st.markdown(f'<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:{GREEN_LT};border:1px solid {GREEN_BD};border-radius:8px;"><div style="width:7px;height:7px;background:{GREEN};border-radius:50%;flex-shrink:0;"></div><span style="font-size:.8rem;font-weight:600;color:{GREEN};">API Connected</span></div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:{RED_LT};border:1px solid {RED_BD};border-radius:8px;"><div style="width:7px;height:7px;background:{RED};border-radius:50%;flex-shrink:0;"></div><span style="font-size:.8rem;font-weight:600;color:{RED};">API Offline</span></div>', unsafe_allow_html=True)
 
     st.markdown(f'<div style="margin:.75rem 0;border-top:1px solid {BORDER};"></div>', unsafe_allow_html=True)
 
-    rd, _ = api("get", "/resumes/")
-    jd_s, _ = api("get", "/jobs/")
-    nr = rd["total"] if rd else 0
-    nj = jd_s["total"] if jd_s else 0
+    nr, nj = fetch_stats()
 
     # Two stat pills — inline, no transforms/absolute positioning
     st.markdown(f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem;"><div style="background:{BLUE_LT};border:1px solid {BLUE_BD};border-radius:8px;padding:12px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;color:{BLUE};">{nr}</div><div style="font-size:.65rem;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin-top:3px;">Resumes</div></div><div style="background:{BLUE_LT};border:1px solid {BLUE_BD};border-radius:8px;padding:12px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;color:{BLUE};">{nj}</div><div style="font-size:.65rem;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin-top:3px;">Jobs</div></div></div><div style="font-size:.7rem;color:{T4};line-height:1.6;padding:0 2px;border-top:1px solid {BORDER};padding-top:.75rem;">Final decisions rest with the recruiter. Scores are assistive only.</div>', unsafe_allow_html=True)
@@ -371,32 +399,57 @@ elif page == "Results":
     if picked != "— Select candidate to view details —":
         cn = next((c for c in cands if c.get("candidate_name") == picked), None)
         if cn:
-            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
             fg,bg2,bd2 = scolor(cn["total_score"])
             bdd = cn.get("score_breakdown",{})
             mat = cn.get("matched_skills",[])
             mis = cn.get("missing_skills",[])
             expl = cn.get("explanation","")
+            
+            st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
             dp1, dp2 = st.columns([1, 1], gap="large")
 
             with dp1:
-                st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-top:3px solid {fg};border-radius:8px;padding:1.25rem;box-shadow:0 4px 20px rgba(0,0,0,.09);"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;"><div><div style="font-size:1rem;font-weight:700;color:{T1};">{cn.get("candidate_name","—")}</div><div style="font-size:.75rem;color:{T3};margin-top:2px;">Rank #{cn["rank"]} · {slabel(cn["total_score"])}</div></div><div style="font-size:1.75rem;font-weight:800;color:{fg};">{int(cn["total_score"]*100)}%</div></div>', unsafe_allow_html=True)
-                for mk,ml in [("skill_match","Skill Match"),("experience_alignment","Experience"),("role_relevance","Role Fit")]:
-                    v=bdd.get(mk,0); p=int(v*100); cf,_,_=scolor(v)
-                    st.markdown(f'<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:.78rem;color:{T3};">{ml}</span><span style="font-size:.78rem;font-weight:700;color:{cf};">{p}%</span></div>{pbar(p,cf)}</div>', unsafe_allow_html=True)
-                st.markdown("</div>", unsafe_allow_html=True)
+                # Optimized single-block Score Card
+                rows_html = "".join([
+                    f'<div style="margin-bottom:12px;">'
+                    f'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+                    f'<span style="font-size:.78rem;color:{T3};">{label}</span>'
+                    f'<span style="font-size:.78rem;font-weight:700;color:{scolor(v)[0]};">{int(v*100)}%</span>'
+                    f'</div>{pbar(int(v*100), scolor(v)[0])}</div>'
+                    for k, label in [("skill_match","Skill Match"),("experience_alignment","Experience"),("role_relevance","Role Fit")]
+                    if (v := bdd.get(k,0)) or True
+                ])
+                
+                st.markdown(f"""
+                <div style="background:{SURFACE};border:1px solid {BORDER};border-top:4px solid {fg};border-radius:12px;padding:1.5rem;box-shadow:0 10px 30px rgba(0,0,0,.08);">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">
+                    <div>
+                      <div style="font-size:1.1rem;font-weight:800;color:{T1};letter-spacing:-.01em;">{cn.get("candidate_name","—")}</div>
+                      <div style="font-size:.78rem;color:{T3};margin-top:3px;font-weight:500;">Rank #{cn["rank"]} · <span style="color:{fg};font-weight:700;">{slabel(cn["total_score"])} Match</span></div>
+                    </div>
+                    <div style="text-align:right;">
+                      <div style="font-size:1.85rem;font-weight:800;color:{fg};line-height:1;">{int(cn["total_score"]*100)}%</div>
+                      <div style="font-size:.65rem;color:{T4};text-transform:uppercase;font-weight:700;margin-top:4px;">Total Score</div>
+                    </div>
+                  </div>
+                  {rows_html}
+                </div>
+                """, unsafe_allow_html=True)
 
             with dp2:
-                st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:1.25rem;box-shadow:0 4px 20px rgba(0,0,0,.09);">', unsafe_allow_html=True)
-                if mat:
-                    chips = " ".join(skill_chip(s,GREEN,GREEN_LT,GREEN_BD) for s in mat)
-                    st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{GREEN};text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Matched Skills</div><div style="line-height:2.2;">{chips}</div>', unsafe_allow_html=True)
-                if mis:
-                    chips = " ".join(skill_chip(s,RED,RED_LT,RED_BD) for s in mis)
-                    st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{RED};text-transform:uppercase;letter-spacing:.07em;margin:12px 0 6px;">Skill Gaps</div><div style="line-height:2.2;">{chips}</div>', unsafe_allow_html=True)
-                if expl:
-                    st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin:12px 0 6px;">Model Reasoning (Assistive)</div><div style="background:{BG};border:1px solid {BORDER};border-left:3px solid {BLUE};border-radius:4px;padding:10px 12px;font-size:.8rem;color:{T2};line-height:1.75;">{expl}</div>', unsafe_allow_html=True)
-                st.markdown("</div>", unsafe_allow_html=True)
+                if mat or mis or expl:
+                    # Optimized single-block Insights Card
+                    mat_html = f'<div style="font-size:.7rem;font-weight:800;color:{GREEN};text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Matched Skills</div><div style="line-height:2.4;margin-bottom:16px;">' + "".join(skill_chip(s,GREEN,GREEN_LT,GREEN_BD) for s in mat) + '</div>' if mat else ""
+                    gap_html = f'<div style="font-size:.7rem;font-weight:800;color:{RED};text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Skill Gaps</div><div style="line-height:2.4;margin-bottom:16px;">' + "".join(skill_chip(s,RED,RED_LT,RED_BD) for s in mis) + '</div>' if mis else ""
+                    expl_html = f'<div style="font-size:.7rem;font-weight:800;color:{T3};text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Model Rationale</div><div style="background:{BG};border:1px solid {BORDER};border-left:4px solid {BLUE};border-radius:8px;padding:12px 14px;font-size:.825rem;color:{T2};line-height:1.7;">{expl}</div>' if expl else ""
+                    
+                    st.markdown(f"""
+                    <div style="background:{SURFACE};border:1px solid {BORDER};border-radius:12px;padding:1.5rem;box-shadow:0 10px 30px rgba(0,0,0,.08);">
+                      {mat_html}
+                      {gap_html}
+                      {expl_html}
+                    </div>
+                    """, unsafe_allow_html=True)
 
 
 # ── PAGE 3: EXPLANATIONS ──────────────────────────────────────────────────────
