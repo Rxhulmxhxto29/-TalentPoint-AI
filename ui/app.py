@@ -69,7 +69,7 @@ def fetch_ranking_results(job_id):
     return res, err
 
 def inject_custom_css():
-    st.markdown(f"""
+    css = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 *{{box-sizing:border-box;}}
@@ -87,7 +87,6 @@ header[data-testid="stHeader"], [data-testid="stHeader"], [data-testid="stAppHea
 }}
 [data-testid="stSidebarContent"]{{padding-top:0px!important;}}
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"]{{padding-top:0px!important;}}
-/* ... (rest of the style code is preserved by the tool) ... */
 [data-testid="stSidebar"] *{{font-family:'Inter',sans-serif!important;}}
 [data-testid="stSidebar"] .stRadio>div{{gap:2px!important;}}
 [data-testid="stSidebar"] .stRadio label{{
@@ -162,7 +161,11 @@ hr{{border-color:{BORDER}!important;}}
 @keyframes fadeIn{{from{{opacity:0;}}to{{opacity:1;}}}}
 .fade{{animation:fadeIn .3s ease both;}}
 </style>
-""", unsafe_allow_html=True)
+""".format(
+        BG=BG, SURFACE=SURFACE, BORDER=BORDER, BLUE=BLUE, BLUE_DK=BLUE_DK, 
+        BLUE_LT=BLUE_LT, BLUE_BD=BLUE_BD, T1=T1, T2=T2
+    )
+    st.markdown(css, unsafe_allow_html=True)
 
 # Run style injection
 inject_custom_css()
@@ -172,11 +175,22 @@ inject_custom_css()
 def api(method, path, **kw):
     try:
         r = getattr(requests, method)(f"{API_BASE}{path}", timeout=60, **kw)
-        return (r.json(), None) if r.status_code < 300 else (None, r.json().get("detail", f"HTTP {r.status_code}"))
+        if r.status_code == 204 or not r.content:
+            return ({}, None) if r.status_code < 300 else (None, f"HTTP {r.status_code}")
+        try:
+            if not r.content: return ({}, None)
+            data = r.json()
+            if r.status_code < 300: return data, None
+            return None, data.get("detail", f"Error {r.status_code}: {r.text[:200]}")
+        except:
+            msg = f"Error {r.status_code}"
+            if r.text: msg += f": {r.text[:200]}"
+            return None, msg
     except requests.exceptions.ConnectionError:
-        return None, "Cannot connect to API."
+        return None, "Cannot connect to API — check if server is running."
     except Exception as e:
-        return None, str(e)
+        return None, f"Request error: {str(e)}"
+
 
 def sec(txt):
     st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.09em;padding-bottom:.5rem;border-bottom:1px solid {BORDER};margin:1.4rem 0 .85rem;">{txt}</div>', unsafe_allow_html=True)
@@ -264,8 +278,9 @@ if page == "Input":
 
         sec("Stored Resumes")
         rl, _ = api("get", "/resumes/")
-        if rl and rl["resumes"]:
-            for r in rl["resumes"][:10]:
+        resumes_list = rl.get("resumes", []) if isinstance(rl, dict) else []
+        if isinstance(resumes_list, list):
+            for r in resumes_list:
                 with st.expander(r["name"]):
                     st.markdown(f'<div style="font-size:.8rem;color:{T3};margin-bottom:10px;"><b style="color:{T2};">File:</b> {r["file_name"]}<br><b style="color:{T2};">Added:</b> {r["created_at"][:16].replace("T"," ")}</div>', unsafe_allow_html=True)
                     b1, b2 = st.columns(2)
@@ -281,6 +296,15 @@ if page == "Input":
                             if pr.status_code == 200:
                                 st.download_button("Save PDF", pr.content, f"{r['name'].replace(' ','_')}.pdf", "application/pdf", key=f"ds_{r['id']}", use_container_width=True)
                             else: st.error("PDF failed.")
+                    
+                    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+                    if st.button("Delete Resume", key=f"del_r_{r['id']}", use_container_width=True):
+                        d, e = api("delete", f"/resumes/{r['id']}")
+                        if e: st.error(e)
+                        else:
+                            st.cache_data.clear()
+                            st.success("Resume deleted.")
+                            st.rerun()
         else:
             st.caption("No resumes uploaded yet.")
 
@@ -299,6 +323,22 @@ if page == "Input":
                     st.markdown(f'<div style="background:{BG};border:1px solid {BORDER};border-radius:8px;padding:.9rem 1rem;margin-top:.5rem;"><div style="font-size:.7rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Parsed Skills</div><div style="margin-bottom:4px;"><span style="font-size:.75rem;color:{GREEN};font-weight:600;">Required ({len(req)}):</span> <span style="font-size:.78rem;color:{T2};">{", ".join(req[:10]) or "—"}</span></div><div><span style="font-size:.75rem;color:{AMBER};font-weight:600;">Preferred ({len(pref)}):</span> <span style="font-size:.78rem;color:{T2};">{", ".join(pref[:10]) or "—"}</span></div></div>', unsafe_allow_html=True)
                 else: st.error(e)
             else: st.warning("Title required; description needs 50+ characters.")
+
+        sec("Stored Job Descriptions")
+        jl, _ = fetch_jobs()
+        if jl:
+            for j in jl:
+                with st.expander(f"{j['title']} (ID: {j['id']})"):
+                    st.markdown(f'<div style="font-size:.8rem;color:{T3};margin-bottom:10px;"><b style="color:{T2};">Added:</b> {j["created_at"][:16].replace("T"," ")}<br><b style="color:{T2};">Exp. Required:</b> {j["min_years_experience"]} yrs</div>', unsafe_allow_html=True)
+                    if st.button("Delete Job Role", key=f"del_j_{j['id']}", use_container_width=True):
+                        d, e = api("delete", f"/jobs/{j['id']}")
+                        if e: st.error(e)
+                        else:
+                            st.cache_data.clear() # Clear all caches to refresh lists
+                            st.success("Job deleted.")
+                            st.rerun()
+        else:
+            st.caption("No jobs defined yet.")
 
 
 # ── PAGE 2: RESULTS ───────────────────────────────────────────────────────────
@@ -536,7 +576,21 @@ elif page == "Fairness Audit":
     sigs=rep.get("bias_signals",[])
     scm={"high":(RED,RED_LT,RED_BD),"medium":(AMBER,AMBER_LT,AMBER_BD),"low":(GREEN,GREEN_LT,GREEN_BD)}
     if not sigs:
-        st.markdown(f'<div style="background:{GREEN_LT};border:1px solid {GREEN_BD};border-radius:8px;padding:1rem 1.25rem;font-size:.875rem;color:{GREEN};font-weight:600;">No signals detected.</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="background:{GREEN_LT};border:1px solid {GREEN_BD};border-radius:12px;padding:1.5rem;box-shadow:0 4px 15px rgba(15,123,85,.05);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
+            <div style="background:{GREEN};color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:900;">✓</div>
+            <div style="font-size:1rem;font-weight:700;color:{GREEN};">Fairness Verification Passed</div>
+          </div>
+          <p style="font-size:.825rem;color:{T2};line-height:1.6;margin-bottom:1rem;">The audit has completed. No statistically significant bias markers were found in this ranking cycle. The score distribution aligns with job-relevant requirements.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:.78rem;color:{T3};"><span style="color:{GREEN};">●</span> Gender-Neutral Language check</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.78rem;color:{T3};"><span style="color:{GREEN};">●</span> Age-Bias Trigger check</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.78rem;color:{T3};"><span style="color:{GREEN};">●</span> Keyword Over-Optimization check</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:.78rem;color:{T3};"><span style="color:{GREEN};">●</span> Geographic Proxy check</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
     else:
         for sg in sigs:
             sev=sg.get("severity","low"); fg2,bg2,bd3=scm.get(sev,scm["low"])

@@ -14,13 +14,13 @@ print(f"Total resumes before cleanup: {len(rows)}")
 
 # Group by name, keep the highest (latest) id
 from collections import defaultdict
-groups = defaultdict(list)
+groups: defaultdict[str, list[int]] = defaultdict(list)
 for r in rows:
     groups[r["name"]].append(r["id"])
 
-to_delete = []
+to_delete: list[int] = []
 for name, ids in groups.items():
-    ids_sorted = sorted(ids)
+    ids_sorted: list[int] = sorted(ids)
     keep = ids_sorted[-1]  # keep newest id
     dupes = ids_sorted[:-1]
     if dupes:

@@ -250,8 +250,20 @@ def delete_resume(resume_id: int, db: sqlite3.Connection = Depends(get_db)):
     if not row:
         raise HTTPException(status_code=404, detail=f"Resume {resume_id} not found")
 
-    db.execute("DELETE FROM resumes WHERE id = ?", (resume_id,))
-    db.commit()
+    try:
+        # 1. Delete feedback for all rankings of this resume
+        db.execute("DELETE FROM feedback WHERE ranking_id IN (SELECT id FROM rankings WHERE resume_id = ?)", (resume_id,))
+        # 2. Delete the rankings for this resume
+        db.execute("DELETE FROM rankings WHERE resume_id = ?", (resume_id,))
+        # 3. Finally delete the resume
+        db.execute("DELETE FROM resumes WHERE id = ?", (resume_id,))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error: {str(e)}"
+        )
 
     try:
         get_embedding_service().remove_resume(resume_id)
