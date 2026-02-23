@@ -1,8 +1,4 @@
-"""
-ui/app.py — AI Resume Screening System · Premium Streamlit UI
-Dark enterprise theme · Glassmorphism cards · Inline-safe CSS
-"""
-
+"""ui/app.py — Resume Screening · Polished Enterprise UI v3"""
 # pyre-ignore[21]
 import streamlit as st
 # pyre-ignore[21]
@@ -12,1023 +8,530 @@ import requests
 
 API_BASE = "http://127.0.0.1:8000"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PAGE CONFIG
-# ─────────────────────────────────────────────────────────────────────────────
-st.set_page_config(
-    page_title="AI Resume Screener",
-    page_icon="🎯",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+st.set_page_config(page_title="Resume Screening", layout="wide",
+                   initial_sidebar_state="expanded")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# GLOBAL CSS
-# ─────────────────────────────────────────────────────────────────────────────
-st.markdown("""
+# ── Palette (hardcoded for inline use) ───────────────────────────────────────
+BG       = "#F0F2F7"
+SURFACE  = "#FFFFFF"
+BORDER   = "#E2E6F0"
+BLUE     = "#2F5BEA"
+BLUE_DK  = "#1E46C7"
+BLUE_LT  = "#EEF2FD"
+BLUE_BD  = "#CCDAFC"
+GREEN    = "#0F7B55"
+GREEN_LT = "#E8F7F2"
+GREEN_BD = "#A7DCC9"
+AMBER    = "#92610A"
+AMBER_LT = "#FEF9EC"
+AMBER_BD = "#E8CE87"
+RED      = "#B22B2B"
+RED_LT   = "#FDF0F0"
+RED_BD   = "#F0BDBD"
+T1       = "#0E1726"
+T2       = "#374151"
+T3       = "#6B7280"
+T4       = "#9CA3AF"
+
+def scolor(s):
+    if s >= .70: return GREEN, GREEN_LT, GREEN_BD
+    if s >= .45: return AMBER, AMBER_LT, AMBER_BD
+    return RED, RED_LT, RED_BD
+
+def slabel(s):
+    if s >= .70: return "Strong"
+    if s >= .45: return "Moderate"
+    return "Weak"
+
+st.markdown(f"""
 <style>
-  :root {
-    --bg-base:   #f1f5f9;
-    --bg-card:   #ffffff;
-    --bg-card2:  #f8fafc;
-    --border:    #cbd5e1;
-    --accent:    #2563eb;
-    --accent2:   #4f46e5;
-    --green:     #059669;
-    --amber:     #d97706;
-    --red:       #dc2626;
-    --text-pri:  #0f172a;
-    --text-sec:  #334155;
-    --text-mute: #64748b;
-  }
-  html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
-    background-color: var(--bg-base) !important;
-    font-family: 'Inter', 'Segoe UI', sans-serif !important;
-    color: var(--text-pri) !important;
-  }
-  [data-testid="stSidebar"] {
-    background: #ffffff !important;
-    border-right: 1px solid var(--border) !important;
-  }
-  [data-testid="stSidebar"] * { color: var(--text-sec) !important; }
-  [data-testid="stSidebar"] [data-testid="stMarkdown"] h3 {
-    color: var(--text-pri) !important;
-    font-weight: 700 !important;
-  }
-  [data-testid="stSidebar"] .stRadio > div { gap: 4px !important; }
-  [data-testid="stSidebar"] .stRadio label {
-    font-size: 0.9rem !important;
-    padding: 8px 12px !important;
-    border-radius: 8px !important;
-    border: 1px solid transparent !important;
-    cursor: pointer !important;
-    transition: all 0.2s !important;
-  }
-  [data-testid="stSidebar"] .stRadio label:hover {
-    background: rgba(59,130,246,0.1) !important;
-    border-color: rgba(59,130,246,0.3) !important;
-  }
-  [data-testid="stMain"] .block-container {
-    padding: 2rem 2.5rem !important;
-    max-width: 1400px !important;
-  }
-  .stButton > button {
-    background: linear-gradient(135deg, #2563eb, #4f46e5) !important;
-    color: #fff !important;
-    border: none !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    font-size: 0.875rem !important;
-    padding: 0.5rem 1.4rem !important;
-    letter-spacing: 0.01em !important;
-    transition: opacity 0.2s, transform 0.1s !important;
-    box-shadow: 0 4px 12px rgba(59,130,246,0.3) !important;
-  }
-  .stButton > button:hover {
-    opacity: 0.9 !important;
-    transform: translateY(-1px) !important;
-  }
-  .stButton > button:active { transform: translateY(0) !important; }
-  .stTextInput input, .stTextArea textarea, .stSelectbox select, div[data-baseweb="select"] {
-    background: var(--bg-card2) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 8px !important;
-    color: var(--text-pri) !important;
-  }
-  div[data-baseweb="select"] * { color: var(--text-pri) !important; }
-  div[data-testid="stExpander"] {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 10px !important;
-    margin-bottom: 8px !important;
-  }
-  div[data-testid="stExpander"] summary {
-     color: var(--text-pri) !important;
-     font-weight: 500 !important;
-  }
-  [data-testid="stMetric"] {
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 10px !important;
-    padding: 1rem !important;
-  }
-  [data-testid="stMetricLabel"] { color: var(--text-sec) !important; }
-  [data-testid="stMetricValue"] { color: var(--text-pri) !important; }
-  .stAlert { border-radius: 8px !important; }
-  hr { border-color: var(--border) !important; }
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg-base); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  [data-testid="stFileUploader"] {
-    background: var(--bg-card) !important;
-    border: 2px dashed var(--border) !important;
-    border-radius: 10px !important;
-  }
-  .stProgress > div > div { background: var(--accent) !important; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+*{{box-sizing:border-box;}}
+html,body,[data-testid="stAppViewContainer"],[data-testid="stMain"]{{
+  background:{BG}!important;
+  font-family:'Inter',system-ui,sans-serif!important;
+  color:{T2}!important;
+}}
+[data-testid="stMain"] .block-container{{
+  padding:1.75rem 2.25rem!important;max-width:1500px!important;
+}}
+[data-testid="stSidebar"]{{
+  background:{SURFACE}!important;
+  border-right:1px solid {BORDER}!important;
+  box-shadow:2px 0 20px rgba(0,0,0,.05)!important;
+}}
+[data-testid="stSidebar"] *{{font-family:'Inter',sans-serif!important;}}
+[data-testid="stSidebar"] .stRadio>div{{gap:2px!important;}}
+[data-testid="stSidebar"] .stRadio label{{
+  font-size:.875rem!important;font-weight:500!important;
+  color:{T2}!important;padding:9px 14px!important;
+  border-radius:8px!important;border:1px solid transparent!important;
+  transition:all .18s!important;cursor:pointer!important;width:100%!important;
+}}
+[data-testid="stSidebar"] .stRadio label:hover{{
+  background:{BLUE_LT}!important;color:{BLUE}!important;border-color:{BLUE_BD}!important;
+}}
+.stButton>button{{
+  background:{BLUE}!important;color:#fff!important;
+  border:none!important;border-radius:8px!important;
+  font-weight:600!important;font-size:.8125rem!important;
+  padding:.5rem 1.1rem!important;min-height:38px!important;
+  white-space:nowrap!important;transition:all .18s!important;
+  box-shadow:0 2px 10px rgba(47,91,234,.28)!important;
+}}
+.stButton>button:hover{{
+  background:{BLUE_DK}!important;transform:translateY(-1px)!important;
+  box-shadow:0 4px 18px rgba(47,91,234,.38)!important;
+}}
+.stButton>button:active{{transform:translateY(0)!important;}}
+[data-testid="stDownloadButton"]>button{{
+  background:{SURFACE}!important;color:{BLUE}!important;
+  border:1.5px solid {BLUE}!important;border-radius:8px!important;
+  font-weight:600!important;font-size:.8125rem!important;
+  padding:.5rem 1.1rem!important;min-height:38px!important;
+  white-space:nowrap!important;transition:all .18s!important;
+}}
+[data-testid="stDownloadButton"]>button:hover{{background:{BLUE_LT}!important;}}
+.stTextInput input,.stTextArea textarea{{
+  background:{SURFACE}!important;border:1.5px solid {BORDER}!important;
+  border-radius:8px!important;color:{T1}!important;
+  font-family:'Inter',sans-serif!important;font-size:.875rem!important;
+  transition:border-color .18s,box-shadow .18s!important;
+}}
+.stTextInput input:focus,.stTextArea textarea:focus{{
+  border-color:{BLUE}!important;box-shadow:0 0 0 3px rgba(47,91,234,.12)!important;
+}}
+div[data-baseweb="select"]{{
+  background:{SURFACE}!important;border:1.5px solid {BORDER}!important;
+  border-radius:8px!important;
+}}
+div[data-baseweb="select"] *{{color:{T1}!important;}}
+div[data-testid="stExpander"]{{
+  background:{SURFACE}!important;border:1px solid {BORDER}!important;
+  border-radius:8px!important;margin-bottom:8px!important;
+  box-shadow:0 1px 8px rgba(0,0,0,.06)!important;
+  transition:box-shadow .18s!important;
+}}
+div[data-testid="stExpander"]:hover{{box-shadow:0 4px 20px rgba(0,0,0,.10)!important;}}
+div[data-testid="stExpander"] summary{{
+  color:{T1}!important;font-weight:600!important;font-size:.875rem!important;
+}}
+[data-testid="stFileUploader"]{{
+  background:{SURFACE}!important;border:2px dashed {BORDER}!important;
+  border-radius:8px!important;
+}}
+.stProgress>div>div{{background:{BLUE}!important;}}
+[data-testid="stMetric"]{{
+  background:{SURFACE}!important;border:1px solid {BORDER}!important;
+  border-radius:8px!important;padding:1rem!important;
+}}
+.stAlert{{border-radius:8px!important;font-size:.875rem!important;}}
+hr{{border-color:{BORDER}!important;}}
+::-webkit-scrollbar{{width:5px;height:5px;}}
+::-webkit-scrollbar-track{{background:{BG};}}
+::-webkit-scrollbar-thumb{{background:#CBD2DC;border-radius:3px;}}
+#MainMenu,footer,header{{visibility:hidden!important;}}
+@keyframes fadeIn{{from{{opacity:0;}}to{{opacity:1;}}}}
+.fade{{animation:fadeIn .3s ease both;}}
 </style>
 """, unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# HELPERS
-# ─────────────────────────────────────────────────────────────────────────────
-def api(method: str, path: str, **kwargs):
+# ── Helpers ───────────────────────────────────────────────────────────────────
+def api(method, path, **kw):
     try:
-        r = getattr(requests, method)(f"{API_BASE}{path}", timeout=60, **kwargs)
-        if r.status_code < 300:
-            return r.json(), None
-        return None, r.json().get("detail", f"HTTP {r.status_code}")
+        r = getattr(requests, method)(f"{API_BASE}{path}", timeout=60, **kw)
+        return (r.json(), None) if r.status_code < 300 else (None, r.json().get("detail", f"HTTP {r.status_code}"))
     except requests.exceptions.ConnectionError:
-        return None, "Cannot connect to API — run: `uvicorn app.api.main:app --reload`"
+        return None, "Cannot connect to API."
     except Exception as e:
         return None, str(e)
 
+def sec(txt):
+    st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.09em;padding-bottom:.5rem;border-bottom:1px solid {BORDER};margin:1.4rem 0 .85rem;">{txt}</div>', unsafe_allow_html=True)
 
-def score_color(score: float) -> str:
-    if score >= 0.70: return "#10b981"
-    if score >= 0.45: return "#f59e0b"
-    return "#ef4444"
+def pg(title, sub=""):
+    st.markdown(f'<div style="margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid {BORDER};"><h1 style="font-size:1.5rem;font-weight:800;color:{T1};letter-spacing:-.02em;margin-bottom:3px;">{title}</h1><p style="font-size:.8125rem;color:{T3};">{sub}</p></div>', unsafe_allow_html=True)
 
+def stat_box(val, lbl, c=BLUE):
+    st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-top:3px solid {c};border-radius:8px;padding:.9rem 1.1rem;text-align:center;box-shadow:0 1px 8px rgba(0,0,0,.06);"><div style="font-size:1.6rem;font-weight:800;color:{c};line-height:1;">{val}</div><div style="font-size:.68rem;font-weight:600;color:{T3};text-transform:uppercase;letter-spacing:.08em;margin-top:5px;">{lbl}</div></div>', unsafe_allow_html=True)
 
-def score_label(score: float) -> str:
-    if score >= 0.70: return "Strong Match"
-    if score >= 0.45: return "Moderate Match"
-    return "Weak Match"
+def pbar(pct, col):
+    return f'<div style="background:#E4E8F2;border-radius:4px;height:5px;overflow:hidden;margin-top:4px;"><div style="background:{col};width:{pct}%;height:5px;border-radius:4px;"></div></div>'
 
+def skill_chip(s, fg, bg, bd):
+    return f'<span style="background:{bg};color:{fg};border:1px solid {bd};font-size:.72rem;font-weight:500;padding:2px 9px;border-radius:20px;display:inline-block;margin:2px;">{s}</span>'
 
-def score_emoji(score: float) -> str:
-    if score >= 0.70: return "🟢"
-    if score >= 0.45: return "🟡"
-    return "🔴"
+def badge(lbl, fg, bg, bd):
+    return f'<span style="background:{bg};color:{fg};border:1px solid {bd};font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;">{lbl}</span>'
 
-
-def page_header(icon: str, title: str, subtitle: str):
-    st.markdown(f"""
-<div style="
-  background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
-  border: 1px solid #bfdbfe;
-  border-left: 4px solid #3b82f6;
-  border-radius: 12px;
-  padding: 1.6rem 2rem;
-  margin-bottom: 2rem;
-  position: relative;
-  overflow: hidden;
-">
-  <div style="
-    position: absolute; right: -20px; top: -20px;
-    width: 120px; height: 120px;
-    background: radial-gradient(circle, rgba(59,130,246,0.1), transparent 70%);
-    border-radius: 50%;
-  "></div>
-  <div style="font-size: 2rem; margin-bottom: 0.3rem;">{icon}</div>
-  <h1 style="color:#1e3a8a; margin:0; font-size:1.7rem; font-weight:800;
-             letter-spacing:-0.02em;">{title}</h1>
-  <p style="color:#475569; margin:0.3rem 0 0; font-size:0.9rem;">{subtitle}</p>
-</div>
-""", unsafe_allow_html=True)
+def info_card(content):
+    st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:1.25rem 1.5rem;box-shadow:0 1px 8px rgba(0,0,0,.06);">{content}</div>', unsafe_allow_html=True)
 
 
-def metric_card(value: str, label: str, color: str = "#3b82f6", icon: str = ""):
-    st.markdown(f"""
-<div style="
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-top: 3px solid {color};
-  border-radius: 12px;
-  padding: 1.2rem 1.5rem;
-  text-align: center;
-">
-  <div style="font-size:1.8rem; margin-bottom:4px;">{icon}</div>
-  <div style="font-size:2.2rem; font-weight:800; color:{color};
-              line-height:1;">{value}</div>
-  <div style="font-size:0.75rem; color:#64748b; text-transform:uppercase;
-              letter-spacing:0.08em; margin-top:6px; font-weight:500;">{label}</div>
-</div>
-""", unsafe_allow_html=True)
-
-
-def score_bar_html(score: float, label: str) -> str:
-    pct = int(score * 100)
-    color = score_color(score)
-    return f"""<div style="margin-bottom:2px;">
-<div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-<span style="font-size:0.75rem; color:#64748b; font-weight:500;">{label}</span>
-<span style="font-size:0.75rem; color:{color}; font-weight:700;">{pct}%</span>
-</div>
-<div style="background:#e2e8f0; border-radius:6px; height:7px; overflow:hidden;">
-<div style="background:linear-gradient(90deg,{color},{color}aa);
-width:{pct}%; height:7px; border-radius:6px;
-transition:width 0.6s ease;"></div>
-</div>
-</div>"""
-
-
-def candidate_card(c: dict, show_bars: bool = True) -> str:
-    rank      = c["rank"]
-    name      = c.get("candidate_name", "—")
-    total     = c["total_score"]
-    bd        = c.get("score_breakdown", {})
-    color     = score_color(total)
-    lbl       = score_label(total)
-    pct       = int(total * 100)
-    rank_bg   = {1: "#f59e0b", 2: "#94a3b8", 3: "#cd7f32"}.get(rank, "#334155")
-
-    bars = ""
-    if show_bars:
-        for key, lbl2 in [("skill_match","Skill"), ("experience_alignment","Experience"),
-                          ("role_relevance","Role Fit")]:
-            v = bd.get(key, 0)
-            p = int(v * 100)
-            c2 = score_color(v)
-            bars += f"""<div style="margin-bottom:6px;">
-<div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-<span style="font-size:0.72rem;color:#64748b;font-weight:500;">{lbl2}</span>
-<span style="font-size:0.72rem;color:{c2};font-weight:700;">{p}%</span>
-</div>
-<div style="background:#f1f5f9;border-radius:4px;height:5px;overflow:hidden;">
-<div style="background:linear-gradient(90deg,{c2},{c2}88);
-width:{p}%;height:5px;border-radius:4px;"></div>
-</div>
-</div>"""
-
-    return f"""<div style="
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid {color};
-  border-radius: 12px;
-  padding: 1.2rem 1.5rem;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: flex-start;
-  gap: 1.2rem;
-  transition: transform 0.2s;
-" onmouseover="this.style.transform='translateY(-2px)'"
-   onmouseout="this.style.transform='translateY(0)'">
-  <div style="
-    background: {rank_bg};
-    color: #fff;
-    font-size: 0.85rem;
-    font-weight: 800;
-    min-width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  ">#{rank}</div>
-  <div style="flex:1; min-width:0;">
-    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
-      <span style="font-size:1rem; font-weight:700; color:#0f172a;">{name}</span>
-      <span style="
-        background: rgba(59,130,246,0.12);
-        color: {color};
-        border: 1px solid {color}44;
-        font-size: 0.72rem;
-        font-weight: 600;
-        padding: 2px 10px;
-        border-radius: 20px;
-        letter-spacing:0.03em;
-      ">{score_emoji(total)} {lbl}</span>
-      <span style="margin-left:auto; font-size:1.4rem; font-weight:800;
-                   color:{color};">{pct}%</span>
-    </div>
-    {bars}
-  </div>
-</div>"""
-
-
-def skill_tag(skill: str, matched: bool) -> str:
-    if matched:
-        bg, color, border = "rgba(16,185,129,0.1)", "#10b981", "rgba(16,185,129,0.3)"
-        prefix = "✓"
-    else:
-        bg, color, border = "rgba(239,68,68,0.1)", "#ef4444", "rgba(239,68,68,0.3)"
-        prefix = "✗"
-    return (f'<span style="background:{bg};color:{color};border:1px solid {border};'
-            f'padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;'
-            f'display:inline-block;margin:3px;">{prefix} {skill}</span>')
-
-
-def section_title(text: str):
-    st.markdown(f"""
-<div style="display:flex;align-items:center;gap:10px;margin:1.5rem 0 1rem;">
-  <div style="height:3px;width:24px;background:linear-gradient(90deg,#3b82f6,#6366f1);
-              border-radius:2px;"></div>
-  <span style="font-size:0.85rem;font-weight:700;color:#94a3b8;
-               text-transform:uppercase;letter-spacing:0.1em;">{text}</span>
-</div>
-""", unsafe_allow_html=True)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# SIDEBAR
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("""
-<div style="padding: 1rem 0 1.5rem; text-align:center;">
-<div style="font-size:2.5rem; margin-bottom:8px;">🎯</div>
-<div style="font-size:1rem; font-weight:800; color:#0f172a;
-            letter-spacing:-0.01em;">AI Resume Screener</div>
-<div style="font-size:0.72rem; color:#475569; margin-top:4px;">
-  Explainable · Bias-Aware · Local AI
-</div>
-</div>
-""", unsafe_allow_html=True)
+    st.markdown(f'<div style="padding:1.5rem 1rem 1.25rem;border-bottom:1px solid {BORDER};margin-bottom:.75rem;"><div style="font-size:1.0625rem;font-weight:800;color:{T1};letter-spacing:-.02em;">Resume Screening</div><div style="font-size:.72rem;color:{T4};margin-top:3px;font-weight:500;">AI-Assisted Candidate Review</div></div>', unsafe_allow_html=True)
 
-    page = st.radio(
-        "nav",
-        ["📥  Input", "📊  Results", "🔍  Explanations",
-         "⚖️  Bias Insights", "💬  Feedback"],
-        label_visibility="collapsed",
-    )
+    page = st.radio("nav", ["Input","Results","Explanations","Fairness Audit","Feedback"], label_visibility="collapsed")
 
-    # pyre-ignore
-    st.markdown("<div style='margin:1.5rem 0;border-top:1px solid #e2e8f0;'></div>", unsafe_allow_html=True)
+    st.markdown(f'<div style="margin:1rem 0;border-top:1px solid {BORDER};"></div>', unsafe_allow_html=True)
 
     health, _ = api("get", "/health")
     if health:
-        st.markdown("""
-<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);
-            border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;">
-<div style="width:8px;height:8px;background:#10b981;border-radius:50%;
-            box-shadow:0 0 6px #10b981;"></div>
-<span style="color:#10b981;font-size:0.8rem;font-weight:600;">API Connected</span>
-</div>
-""", unsafe_allow_html=True)
+        st.markdown(f'<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:{GREEN_LT};border:1px solid {GREEN_BD};border-radius:8px;"><div style="width:7px;height:7px;background:{GREEN};border-radius:50%;flex-shrink:0;"></div><span style="font-size:.8rem;font-weight:600;color:{GREEN};">API Connected</span></div>', unsafe_allow_html=True)
     else:
-        st.markdown("""
-<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
-            border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;">
-<div style="width:8px;height:8px;background:#ef4444;border-radius:50%;"></div>
-<span style="color:#ef4444;font-size:0.8rem;font-weight:600;">API Offline</span>
-</div>
-<div style="font-size:0.72rem;color:#475569;margin-top:8px;line-height:1.5;">
-Run: <code style="background:#1e2d45;padding:2px 6px;border-radius:4px;
-color:#94a3b8;">uvicorn app.api.main:app --reload</code>
-</div>
-""", unsafe_allow_html=True)
+        st.markdown(f'<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:{RED_LT};border:1px solid {RED_BD};border-radius:8px;"><div style="width:7px;height:7px;background:{RED};border-radius:50%;flex-shrink:0;"></div><span style="font-size:.8rem;font-weight:600;color:{RED};">API Offline</span></div>', unsafe_allow_html=True)
 
-    # Quick stats
-    # pyre-ignore
-    st.markdown("<div style='margin:1.2rem 0;border-top:1px solid #e2e8f0;'></div>", unsafe_allow_html=True)
-    resumes_data, _ = api("get", "/resumes/")
-    jobs_data_s, _  = api("get", "/jobs/")
-    n_r = resumes_data["total"] if resumes_data else 0
-    n_j = jobs_data_s["total"] if jobs_data_s else 0
-    st.markdown(f"""
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
-            padding:10px;text-align:center;">
-<div style="font-size:1.4rem;font-weight:800;color:#2563eb;">{n_r}</div>
-<div style="font-size:0.68rem;color:#64748b;text-transform:uppercase;
-            letter-spacing:0.06em;margin-top:2px;">Resumes</div>
-</div>
-<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
-            padding:10px;text-align:center;">
-<div style="font-size:1.4rem;font-weight:800;color:#4f46e5;">{n_j}</div>
-<div style="font-size:0.68rem;color:#64748b;text-transform:uppercase;
-            letter-spacing:0.06em;margin-top:2px;">Jobs</div>
-</div>
-</div>
-""", unsafe_allow_html=True)
+    st.markdown(f'<div style="margin:.75rem 0;border-top:1px solid {BORDER};"></div>', unsafe_allow_html=True)
+
+    rd, _ = api("get", "/resumes/")
+    jd_s, _ = api("get", "/jobs/")
+    nr = rd["total"] if rd else 0
+    nj = jd_s["total"] if jd_s else 0
+
+    # Two stat pills — inline, no transforms/absolute positioning
+    st.markdown(f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem;"><div style="background:{BLUE_LT};border:1px solid {BLUE_BD};border-radius:8px;padding:12px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;color:{BLUE};">{nr}</div><div style="font-size:.65rem;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin-top:3px;">Resumes</div></div><div style="background:{BLUE_LT};border:1px solid {BLUE_BD};border-radius:8px;padding:12px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;color:{BLUE};">{nj}</div><div style="font-size:.65rem;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin-top:3px;">Jobs</div></div></div><div style="font-size:.7rem;color:{T4};line-height:1.6;padding:0 2px;border-top:1px solid {BORDER};padding-top:.75rem;">Final decisions rest with the recruiter. Scores are assistive only.</div>', unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PAGE 1 — INPUT
-# ─────────────────────────────────────────────────────────────────────────────
-if page == "📥  Input":
-    page_header("📥", "Data Input", "Upload resumes and create job descriptions to begin screening")
+# ── PAGE 1: INPUT ─────────────────────────────────────────────────────────────
+if page == "Input":
+    pg("Data Input", "Upload candidate resumes and define the job description.")
+    col_r, col_j = st.columns([1,1], gap="large")
 
-    col_r, col_j = st.columns([1, 1], gap="large")
-
-    # ── Resume Upload ──────────────────────────────────────────────────────
     with col_r:
-        st.markdown("""
-<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;
-            padding:1.5rem;margin-bottom:1rem;">
-<div style="font-size:1rem;font-weight:700;color:#0f172a;margin-bottom:4px;">
-  📄 Upload Resumes
-</div>
-<div style="font-size:0.8rem;color:#64748b;">
-  Supports PDF, DOCX, and TXT formats
-</div>
-</div>
-""", unsafe_allow_html=True)
+        info_card(f'<div style="font-size:.9375rem;font-weight:700;color:{T1};margin-bottom:2px;">Resume Upload</div><div style="font-size:.8rem;color:{T3};">PDF, DOCX, or TXT · Multiple files supported</div>')
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-        uploaded_files = st.file_uploader(
-            "Drop resume files here",
-            type=["pdf", "docx", "doc", "txt"],
-            accept_multiple_files=True,
-            label_visibility="collapsed",
-        )
-        if uploaded_files:
-            if st.button("⬆️  Upload All Resumes", use_container_width=True):
-                ok: int = 0
-                fail: int = 0
-                prog = st.progress(0)
-                status_box = st.empty()
-                for i, f in enumerate(uploaded_files):
-                    # pyre-ignore
-                    status_box.markdown(
-                        f'<div style="font-size:0.8rem;color:#94a3b8;">Processing {f.name}…</div>',
-                        unsafe_allow_html=True
-                    )
-                    data, err = api("post", "/resumes/upload",
-                        files={"file": (f.name, f.getvalue(),
-                                        f.type or "application/octet-stream")})
-                    if data:
-                        # pyre-ignore
-                        ok = ok + 1
+        uploaded = st.file_uploader("Drop files here", type=["pdf","docx","doc","txt"],
+                        accept_multiple_files=True, label_visibility="collapsed")
+        ok: int = 0
+        fail: int = 0
+        if uploaded:
+            if st.button("Upload Resumes", use_container_width=True):
+                prog = st.progress(0); status = st.empty()
+                for i, f in enumerate(uploaded):
+                    status.caption(f"Processing {f.name}…")
+                    d, e = api("post", "/resumes/upload",
+                        files={"file": (f.name, f.getvalue(), f.type or "application/octet-stream")})
+                    if d: ok = ok + 1   # type: ignore
                     else:
-                        # pyre-ignore
-                        fail = fail + 1
-                        st.warning(f"❌ {f.name}: {err}")
-                    prog.progress((i + 1) / len(uploaded_files))
-                status_box.empty()
-                if ok:
-                    st.success(f"✅ {ok} resume(s) uploaded successfully!")
-                if fail:
-                    st.error(f"{fail} upload(s) failed.")
+                        fail = fail + 1  # type: ignore
+                        st.warning(f"{f.name}: {e}")
+                    prog.progress((i+1)/len(uploaded))
+                status.empty()
+                if ok: st.success(f"{ok} resume(s) uploaded.")
+                if fail: st.error(f"{fail} failed.")
 
-        section_title("Or paste resume text")
-        with st.expander("✏️  Paste plain-text resume"):
-            paste_name = st.text_input("Candidate Name", placeholder="e.g. Priya Sharma")
-            paste_text = st.text_area("Resume Text",
-                placeholder="Paste the full resume text here…", height=200)
-            if st.button("Submit Text Resume", use_container_width=True):
-                if paste_name and paste_text:
-                    data, err = api("post", "/resumes/upload-text",
-                        data={"name": paste_name, "raw_text": paste_text})
-                    if data:
-                        st.success(
-                            f"✅ **{data['candidate_name']}** added — "
-                            f"{data['skills_extracted']} skills · "
-                            f"{data['total_years_experience']:.1f} YoE"
-                        )
-                    else:
-                        st.error(err)
-                else:
-                    st.warning("Please enter both a name and resume text.")
+        sec("Paste plain-text resume")
+        with st.expander("Enter resume manually"):
+            pn = st.text_input("Candidate name", placeholder="Full name")
+            pt = st.text_area("Resume text", placeholder="Paste full resume content here…", height=180)
+            if st.button("Submit Resume", use_container_width=True):
+                if pn and pt:
+                    d, e = api("post", "/resumes/upload-text", data={"name": pn, "raw_text": pt})
+                    if d: st.success(f"{d['candidate_name']} — {d['skills_extracted']} skills · {d['total_years_experience']:.1f} yrs")
+                    else: st.error(e)
+                else: st.warning("Name and text required.")
 
-        section_title("Stored Resumes")
-        res_list, _ = api("get", "/resumes/")
-        if res_list and res_list["resumes"]:
-            for r in res_list["resumes"][:8]: # Show last 8
-                with st.expander(f"📄 {r['name']}"):
-                    st.markdown(f"""
-<div style="font-size:0.8rem; color:#64748b; margin-bottom:10px;">
-    <strong>File:</strong> {r['file_name']}<br>
-    <strong>Added:</strong> {r['created_at'][:16].replace('T', ' ')}
-</div>
-""", unsafe_allow_html=True)
-                    b1, b2, _ = st.columns([1, 1, 2])
+        sec("Stored Resumes")
+        rl, _ = api("get", "/resumes/")
+        if rl and rl["resumes"]:
+            for r in rl["resumes"][:10]:
+                with st.expander(r["name"]):
+                    st.markdown(f'<div style="font-size:.8rem;color:{T3};margin-bottom:10px;"><b style="color:{T2};">File:</b> {r["file_name"]}<br><b style="color:{T2};">Added:</b> {r["created_at"][:16].replace("T"," ")}</div>', unsafe_allow_html=True)
+                    b1, b2 = st.columns(2)
                     with b1:
-                        view_clicked = st.button("👁️ View Text", key=f"in_v_{r['id']}", use_container_width=True)  # type: ignore
+                        if st.button("View Text", key=f"v_{r['id']}", use_container_width=True):  # type: ignore
+                            det, _ = api("get", f"/resumes/{r['id']}")  # type: ignore
+                            if det: st.markdown(f'<pre style="background:{BG};border:1px solid {BORDER};border-radius:8px;padding:12px;font-size:.78rem;color:{T2};max-height:220px;overflow-y:auto;white-space:pre-wrap;margin-top:8px;">{det.get("raw_text","")}</pre>', unsafe_allow_html=True)
                     with b2:
-                        dl_clicked = st.button("📥 Download PDF", key=f"in_d_{r['id']}", use_container_width=True)  # type: ignore
-
-                    if view_clicked:
-                        det, err = api("get", f"/resumes/{r['id']}")  # type: ignore
-                        if det:
-                            text_to_show = det.get('raw_text') or det.get('parsed', {}).get('raw_text', 'Text not found')
-                            st.markdown(f"""
-<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; font-size:0.8rem; color:#334155; max-height:260px; overflow-y:auto; white-space:pre-wrap; font-family:monospace; margin-top:8px;">
-{text_to_show}
-</div>
-""", unsafe_allow_html=True)
-                        elif err:
-                            st.error(f"Error: {err}")
-
-                    if dl_clicked:
-                        import requests as _req  # type: ignore
-                        with st.spinner("Generating PDF…"):
-                            pdf_resp = _req.get(f"{API_BASE}/resumes/{r['id']}/pdf", timeout=30)
-                        if pdf_resp.status_code == 200:
-                            st.download_button(
-                                label="📄 Click to Save Resume PDF",
-                                data=pdf_resp.content,
-                                file_name=f"{r['name'].replace(' ', '_')}_resume.pdf",
-                                mime="application/pdf",
-                                key=f"dl_save_{r['id']}",
-                                use_container_width=True,
-                            )
-                        else:
-                            st.error("Failed to generate PDF.")
+                        if st.button("Download PDF", key=f"d_{r['id']}", use_container_width=True):  # type: ignore
+                            import requests as _r  # type: ignore
+                            with st.spinner("Generating…"):
+                                pr = _r.get(f"{API_BASE}/resumes/{r['id']}/pdf", timeout=30)
+                            if pr.status_code == 200:
+                                st.download_button("Save PDF", pr.content, f"{r['name'].replace(' ','_')}.pdf", "application/pdf", key=f"ds_{r['id']}", use_container_width=True)
+                            else: st.error("PDF failed.")
         else:
-            st.markdown('<div style="font-size:0.8rem; color:#94a3b8;">No resumes uploaded yet.</div>', unsafe_allow_html=True)
+            st.caption("No resumes uploaded yet.")
 
-    # ── Job Description ────────────────────────────────────────────────────
     with col_j:
-        st.markdown("""
-<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;
-            padding:1.5rem;margin-bottom:1rem;">
-<div style="font-size:1rem;font-weight:700;color:#0f172a;margin-bottom:4px;">
-  🏢 Job Description
-</div>
-<div style="font-size:0.8rem;color:#64748b;">
-  Include required skills, preferred skills, and experience expectations
-</div>
-</div>
-""", unsafe_allow_html=True)
-
-        jd_title = st.text_input("Job Title", placeholder="e.g. Senior ML Engineer")
-        jd_text  = st.text_area("Job Description",
-            placeholder=(
-                "Required Skills:\n- Python\n- Machine Learning\n\n"
-                "Nice to Have:\n- Docker\n- AWS\n\n"
-                "Requirements:\nMinimum 5 years of experience."
-            ), height=310)
-        if st.button("➕  Add Job Description", use_container_width=True):
-            if jd_title and jd_text and len(jd_text) >= 50:
-                data, err = api("post", "/jobs/",
-                    json={"title": jd_title, "description": jd_text})
-                if data:
-                    req = data.get("required_skills", [])
-                    pref = data.get("preferred_skills", [])
-                    st.success(f"✅ **{data['title']}** created (ID: {data['job_id']})")
-                    st.markdown(f"""
-<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
-            padding:1rem;margin-top:0.5rem;">
-<div style="font-size:0.8rem;color:#64748b;margin-bottom:6px;
-            font-weight:600;text-transform:uppercase;letter-spacing:.05em;">
-Parsed Skills
-</div>
-<div style="margin-bottom:6px;">
-<span style="font-size:0.72rem;color:#059669;font-weight:600;">
-Required ({len(req)}):
-</span>
-<span style="font-size:0.75rem;color:#334155;"> {', '.join(req[:8]) or '—'}</span>
-</div>
-<div>
-<span style="font-size:0.72rem;color:#d97706;font-weight:600;">
-Preferred ({len(pref)}):
-</span>
-<span style="font-size:0.75rem;color:#334155;"> {', '.join(pref[:8]) or '—'}</span>
-</div>
-</div>
-""", unsafe_allow_html=True)
-                else:
-                    st.error(err)
-            else:
-                st.warning("Title required — description needs at least 50 characters.")
+        info_card(f'<div style="font-size:.9375rem;font-weight:700;color:{T1};margin-bottom:2px;">Job Description</div><div style="font-size:.8rem;color:{T3};">Required skills, qualifications, and experience expectations.</div>')
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        jt = st.text_input("Job title", placeholder="e.g. Senior Software Engineer")
+        jx = st.text_area("Job description", placeholder="Required:\n- Python, FastAPI\n- 5+ years\n\nPreferred:\n- Docker, AWS", height=300)
+        if st.button("Save Job Description", use_container_width=True):
+            if jt and jx and len(jx) >= 50:
+                d, e = api("post", "/jobs/", json={"title": jt, "description": jx})
+                if d:
+                    req = d.get("required_skills", [])
+                    pref = d.get("preferred_skills", [])
+                    st.success(f"Saved: {d['title']} (ID {d['job_id']})")
+                    st.markdown(f'<div style="background:{BG};border:1px solid {BORDER};border-radius:8px;padding:.9rem 1rem;margin-top:.5rem;"><div style="font-size:.7rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Parsed Skills</div><div style="margin-bottom:4px;"><span style="font-size:.75rem;color:{GREEN};font-weight:600;">Required ({len(req)}):</span> <span style="font-size:.78rem;color:{T2};">{", ".join(req[:10]) or "—"}</span></div><div><span style="font-size:.75rem;color:{AMBER};font-weight:600;">Preferred ({len(pref)}):</span> <span style="font-size:.78rem;color:{T2};">{", ".join(pref[:10]) or "—"}</span></div></div>', unsafe_allow_html=True)
+                else: st.error(e)
+            else: st.warning("Title required; description needs 50+ characters.")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PAGE 2 — RESULTS
-# ─────────────────────────────────────────────────────────────────────────────
-elif page == "📊  Results":
-    page_header("📊", "Ranked Candidates",
-                "Multi-factor AI scoring — Skill Match · Experience Alignment · Role Relevance")
+# ── PAGE 2: RESULTS ───────────────────────────────────────────────────────────
+elif page == "Results":
+    pg("Ranked Candidates", "Assistive scoring only — final decisions remain with the recruiter.")
 
-    jobs_data, err = api("get", "/jobs/")
+    jobs, err = api("get", "/jobs/")
     if err: st.error(err); st.stop()
-    # pyre-ignore
-    if not jobs_data["jobs"]:
-        # pyre-ignore
-        st.info("No jobs yet — go to **Input** and add a job description first.")
-        # pyre-ignore
-        st.stop()
+    if not jobs["jobs"]:  # type: ignore
+        st.info("No jobs found — add a job description first."); st.stop()
 
-    # pyre-ignore
-    job_opts = {f"{j['title']}  (ID: {j['id']})": j["id"] for j in jobs_data["jobs"]}
-
-    ctrl_l, ctrl_r = st.columns([2, 1])
-    with ctrl_l:
-        selected = st.selectbox("Select Job", list(job_opts.keys()),
-                                label_visibility="collapsed")
-    job_id = job_opts[selected]
-    with ctrl_r:
-        run_btn = st.button("🚀  Run Ranking", use_container_width=True)
-
-    if run_btn:
-        with st.spinner("Computing skill, experience & semantic scores…"):
-            data, err = api("post", f"/rank/{job_id}")
-        if err: st.error(err); st.stop()
-        # pyre-ignore
-        st.session_state[f"rank_{job_id}"] = data
+    jopts = {f"{j['title']}  (ID: {j['id']})": j["id"] for j in jobs["jobs"]}  # type: ignore
+    c1, c2 = st.columns([3,1])
+    with c1: sel = st.selectbox("Job", list(jopts.keys()), label_visibility="collapsed")
+    job_id = jopts[sel]
+    with c2:
+        if st.button("Run Scoring", use_container_width=True):
+            with st.spinner("Computing scores…"):
+                d, e = api("post", f"/rank/{job_id}")
+            if e: st.error(e); st.stop()
+            st.session_state[f"rank_{job_id}"] = d
 
     if f"rank_{job_id}" not in st.session_state:
-        saved, _ = api("get", f"/rank/{job_id}/results")
-        # pyre-ignore
-        if saved: st.session_state[f"rank_{job_id}"] = saved
+        sv, _ = api("get", f"/rank/{job_id}/results")
+        if sv: st.session_state[f"rank_{job_id}"] = sv
 
-    results = st.session_state.get(f"rank_{job_id}")
-    if not results:
-        st.markdown("""
-<div style="background:#ffffff;border:1px dashed #cbd5e1;border-radius:12px;
-            padding:3rem;text-align:center;">
-<div style="font-size:2.5rem;margin-bottom:12px;">🚀</div>
-<div style="color:#64748b;font-size:0.9rem;">
-Click <strong style="color:#0f172a;">Run Ranking</strong> to rank candidates
-</div>
-</div>
-""", unsafe_allow_html=True)
+    res = st.session_state.get(f"rank_{job_id}")
+    if not res:
+        info_card(f'<div style="text-align:center;padding:2.5rem 0;font-size:.9rem;color:{T3};">Select a job and click <b style="color:{T1};">Run Scoring</b> to rank candidates.</div>')
         st.stop()
 
-    candidates = results["ranked_candidates"]
-    weights    = results.get("weights_used", {})
+    cands   = res["ranked_candidates"]
+    weights = res.get("weights_used", {})
+    top     = cands[0]["total_score"] if cands else 0
+    strong  = sum(1 for c in cands if c["total_score"] >= .70)
 
-    # Summary row
-    top_score = candidates[0]["total_score"] if candidates else 0
-    # pyre-ignore
-    st.html("<div style='height:12px'></div>")
-    m1, m2, m3, m4 = st.columns(4)
-    with m1: metric_card(str(len(candidates)), "Candidates Ranked", "#3b82f6", "👥")
-    with m2: metric_card(f"{int(top_score*100)}%", "Top Score", "#10b981", "🏆")
-    with m3: metric_card(f"{int(weights.get('skill_match',0.4)*100)}%",
-                         "Skill Weight", "#6366f1", "⚡")
-    with m4:
-        strong = sum(1 for c in candidates if c["total_score"] >= 0.70)
-        metric_card(str(strong), "Strong Matches", "#f59e0b", "✨")
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    m1,m2,m3,m4 = st.columns(4)
+    with m1: stat_box(len(cands), "Candidates Scored")
+    with m2: stat_box(f"{int(top*100)}%", "Highest Score", GREEN)
+    with m3: stat_box(strong, "Strong Matches", BLUE)
+    with m4: stat_box(f"{int(weights.get('skill_match',.4)*100)}%", "Skill Weight")
 
-    section_title(f"Ranked Results — {results.get('job_title','')}")
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 
-    for c in candidates:
-        # pyre-ignore
-        html = candidate_card(c, show_bars=True)
-        st.markdown(html, unsafe_allow_html=True)
+    # ── Candidate picker for detail view (no per-row button) ──────────────────
+    cand_names = ["— Select candidate to view details —"] + [c.get("candidate_name","—") for c in cands]
+    pc1, pc2 = st.columns([2,3])
+    with pc1:
+        picked = st.selectbox("View candidate details", cand_names, label_visibility="visible")
 
-    # pyre-ignore
-    st.markdown(
-        f'<div style="font-size:0.72rem;color:#334155;margin-top:12px;">'
-        f'Generated: {results.get("generated_at","—")[:19].replace("T"," ")} UTC'
-        f'</div>',
-        unsafe_allow_html=True
-    )
+    sec(f"Ranking — {res.get('job_title','')}")
 
-    # ── Download Ranking Report ─────────────────────────────────────────────
-    st.markdown("---")
-    dl_col, _ = st.columns([1, 2])
-    with dl_col:
-        if st.button("📄 Download Ranking Report (PDF)", use_container_width=True, key="dl_report"):
-            import requests as _req  # type: ignore
-            with st.spinner("Generating PDF report…"):
-                rpt_resp = _req.get(f"{API_BASE}/rank/{job_id}/report.pdf", timeout=30)
-            if rpt_resp.status_code == 200:
-                safe_title = results.get('job_title', 'report').replace(' ', '_').lower()
-                st.download_button(
-                    label="📥 Click to Save Report",
-                    data=rpt_resp.content,
-                    file_name=f"ranking_{safe_title}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    key="dl_report_save",
-                )
-            else:
-                st.error("Could not generate report. Run the ranking first.")
+    # Table header
+    h0,h1,h2,h3,h4,h5,h6 = st.columns([.5, 2.5, .8, .8, .8, .8, .9])
+    for col, txt in zip([h0,h1,h2,h3,h4,h5,h6], ["#","Candidate","Overall","Skill","Exp.","Role Fit","Status"]):
+        col.markdown(f'<div style="font-size:.68rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.08em;padding-bottom:6px;border-bottom:2px solid {BORDER};">{txt}</div>', unsafe_allow_html=True)
 
+    for i, c in enumerate(cands):
+        rank  = c["rank"]
+        name  = c.get("candidate_name","—")
+        tot   = c["total_score"]
+        bd    = c.get("score_breakdown",{})
+        sk    = bd.get("skill_match",0)
+        ex    = bd.get("experience_alignment",0)
+        rf    = bd.get("role_relevance",0)
+        pct   = int(tot*100)
+        fg,bg2,bd2 = scolor(tot)
+        lbl   = slabel(tot)
+        is_picked = (picked == name)
+        row_bg = BLUE_LT if is_picked else (SURFACE if i%2==0 else "#F8F9FC")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PAGE 3 — EXPLANATIONS
-# ─────────────────────────────────────────────────────────────────────────────
-elif page == "🔍  Explanations":
-    page_header("🔍", "Candidate Explanations",
-                "Human-readable reasoning for every ranking decision")
+        rs = f"background:{row_bg};padding:10px 4px;border-bottom:1px solid {BORDER};"
+        r0,r1,r2,r3,r4,r5,r6 = st.columns([.5, 2.5, .8, .8, .8, .8, .9])
+        r0.markdown(f'<div style="{rs}font-size:.85rem;font-weight:700;color:{T3};">#{rank}</div>', unsafe_allow_html=True)
+        r1.markdown(f'<div style="{rs}font-size:.875rem;font-weight:600;color:{T1};">{name}</div>', unsafe_allow_html=True)
+        r2.markdown(f'<div style="{rs}font-size:.9rem;font-weight:800;color:{fg};">{pct}%</div>', unsafe_allow_html=True)
+        r3.markdown(f'<div style="{rs}font-size:.78rem;color:{T2};">{int(sk*100)}%{pbar(int(sk*100),fg)}</div>', unsafe_allow_html=True)
+        r4.markdown(f'<div style="{rs}font-size:.78rem;color:{T2};">{int(ex*100)}%{pbar(int(ex*100),fg)}</div>', unsafe_allow_html=True)
+        r5.markdown(f'<div style="{rs}font-size:.78rem;color:{T2};">{int(rf*100)}%{pbar(int(rf*100),fg)}</div>', unsafe_allow_html=True)
+        r6.markdown(f'<div style="{rs}">{badge(lbl,fg,bg2,bd2)}</div>', unsafe_allow_html=True)
 
-    jobs_data, _ = api("get", "/jobs/")
-    if not jobs_data or not jobs_data["jobs"]:
-        st.info("Add a job and run ranking first."); st.stop()
+    st.markdown(f'<div style="font-size:.72rem;color:{T4};margin-top:10px;">Generated: {res.get("generated_at","")[:19].replace("T"," ")} UTC</div>', unsafe_allow_html=True)
+    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
-    # pyre-ignore
-    job_opts = {f"{j['title']}  (ID: {j['id']})": j["id"] for j in jobs_data["jobs"]}
-    sel = st.selectbox("Select Job", list(job_opts.keys()), label_visibility="collapsed")
-    job_id = job_opts[sel]
+    dc, _ = st.columns([1,2])
+    with dc:
+        if st.button("Download Report (PDF)", use_container_width=True, key="dl_rpt"):
+            import requests as _r  # type: ignore
+            with st.spinner("Generating…"):
+                rp = _r.get(f"{API_BASE}/rank/{job_id}/report.pdf", timeout=30)
+            if rp.status_code == 200:
+                safe = res.get("job_title","report").replace(" ","_").lower()
+                st.download_button("Save Report", rp.content, f"ranking_{safe}.pdf", "application/pdf", use_container_width=True, key="sv_rpt")
+            else: st.error("Report generation failed.")
 
-    results, err = api("get", f"/rank/{job_id}/results")
-    if err or not results:
-        st.info("No rankings yet — run ranking on the Results page first."); st.stop()
+    # ── Detail panel ──────────────────────────────────────────────────────────
+    if picked != "— Select candidate to view details —":
+        cn = next((c for c in cands if c.get("candidate_name") == picked), None)
+        if cn:
+            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+            fg,bg2,bd2 = scolor(cn["total_score"])
+            bdd = cn.get("score_breakdown",{})
+            mat = cn.get("matched_skills",[])
+            mis = cn.get("missing_skills",[])
+            expl = cn.get("explanation","")
+            dp1, dp2 = st.columns([1, 1], gap="large")
 
-    # pyre-ignore
-    candidates = results["ranked_candidates"]
-    section_title(f"{len(candidates)} candidates · expand for details")
+            with dp1:
+                st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-top:3px solid {fg};border-radius:8px;padding:1.25rem;box-shadow:0 4px 20px rgba(0,0,0,.09);"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;"><div><div style="font-size:1rem;font-weight:700;color:{T1};">{cn.get("candidate_name","—")}</div><div style="font-size:.75rem;color:{T3};margin-top:2px;">Rank #{cn["rank"]} · {slabel(cn["total_score"])}</div></div><div style="font-size:1.75rem;font-weight:800;color:{fg};">{int(cn["total_score"]*100)}%</div></div>', unsafe_allow_html=True)
+                for mk,ml in [("skill_match","Skill Match"),("experience_alignment","Experience"),("role_relevance","Role Fit")]:
+                    v=bdd.get(mk,0); p=int(v*100); cf,_,_=scolor(v)
+                    st.markdown(f'<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:.78rem;color:{T3};">{ml}</span><span style="font-size:.78rem;font-weight:700;color:{cf};">{p}%</span></div>{pbar(p,cf)}</div>', unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
 
-    for c in candidates:
-        rank    = c["rank"]
-        name    = c.get("candidate_name", "—")
-        total   = c["total_score"]
-        bd      = c.get("score_breakdown", {})
-        matched = c.get("matched_skills", [])
-        missing = c.get("missing_skills", [])
-        # pyre-ignore
-        expl    = c.get("explanation", "No explanation available.")
-        color   = score_color(total)
-        lbl     = score_label(total)
-
-        with st.expander(f"#{rank}  {name}  ·  {score_emoji(total)} {lbl}  ·  {int(total*100)}%"):
-            col_scores, col_skills = st.columns([1, 1.4], gap="large")
-
-            with col_scores:
-                # pyre-ignore
-                st.markdown("""
-<div style="font-size:0.8rem;font-weight:700;color:#94a3b8;
-            text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;">
-  Score Breakdown
-</div>
-""", unsafe_allow_html=True)
-                for metric, lbl2 in [
-                    ("total", "Overall Score"),
-                    ("skill_match", "Skill Match"),
-                    ("experience_alignment", "Experience"),
-                    ("role_relevance", "Role Relevance"),
-                ]:
-                    v = bd.get(metric, total if metric == "total" else 0)
-                    st.markdown(score_bar_html(v, lbl2), unsafe_allow_html=True)
-
-            with col_skills:
-                if matched:
-                    st.markdown("""
-<div style="font-size:0.8rem;font-weight:700;color:#94a3b8;
-            text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">
-  ✅ Matched Skills
-</div>
-""", unsafe_allow_html=True)
-                    tags = " ".join(skill_tag(s, True) for s in matched)
-                    # pyre-ignore
-                    st.markdown(f'<div style="line-height:2;">{tags}</div>', unsafe_allow_html=True)
-
-                if missing:
-                    st.markdown("""
-<div style="font-size:0.8rem;font-weight:700;color:#94a3b8;
-            text-transform:uppercase;letter-spacing:.08em;
-            margin-top:12px;margin-bottom:8px;">
-  ❌ Missing Skills
-</div>
-""", unsafe_allow_html=True)
-                    tags = " ".join(skill_tag(s, False) for s in missing)
-                    # pyre-ignore
-                    st.markdown(f'<div style="line-height:2;">{tags}</div>', unsafe_allow_html=True)
-
-            st.markdown("""
-<div style="font-size:0.8rem;font-weight:700;color:#94a3b8;
-            text-transform:uppercase;letter-spacing:.08em;
-            margin-top:16px;margin-bottom:8px;">
-  💬 AI Explanation
-</div>
-""", unsafe_allow_html=True)
-            st.markdown(f"""
-<div style="
-  background:#f8fafc;
-  border:1px solid #e2e8f0;
-  border-left:4px solid #3b82f6;
-  border-radius:8px;
-  padding:1rem 1.2rem;
-  font-size:0.875rem;
-  color:#334155;
-  line-height:1.7;
-">{expl}</div>
-""", unsafe_allow_html=True)
-
-            # NEW: View Full Resume Section
-            st.markdown("""
-<div style="font-size:0.8rem;font-weight:700;color:#64748b;
-            text-transform:uppercase;letter-spacing:.08em;
-            margin-top:16px;margin-bottom:8px;">
-  📄 Original Resume Text
-</div>
-""", unsafe_allow_html=True)
-            if st.button("Show Full Text", key=f"raw_btn_{c['resume_id']}_{rank}"):  # type: ignore
-                res_det, err = api("get", f"/resumes/{c['resume_id']}")  # type: ignore
-                if res_det:
-                    text_to_show = res_det.get('raw_text') or res_det.get('parsed', {}).get('raw_text', 'Text not found')
-                    st.markdown(f"""
-<div style="
-  background:white;
-  border:1px solid #e2e8f0;
-  border-radius:8px;
-  padding:1rem;
-  font-size:0.8rem;
-  color:#334155;
-  line-height:1.6;
-  max-height:400px;
-  overflow-y:auto;
-  white-space:pre-wrap;
-  font-family: 'Courier New', Courier, monospace;
-">{text_to_show}</div>
-""", unsafe_allow_html=True)
-                elif err:
-                    st.error(f"Error fetching resume: {err}")
+            with dp2:
+                st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:1.25rem;box-shadow:0 4px 20px rgba(0,0,0,.09);">', unsafe_allow_html=True)
+                if mat:
+                    chips = " ".join(skill_chip(s,GREEN,GREEN_LT,GREEN_BD) for s in mat)
+                    st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{GREEN};text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Matched Skills</div><div style="line-height:2.2;">{chips}</div>', unsafe_allow_html=True)
+                if mis:
+                    chips = " ".join(skill_chip(s,RED,RED_LT,RED_BD) for s in mis)
+                    st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{RED};text-transform:uppercase;letter-spacing:.07em;margin:12px 0 6px;">Skill Gaps</div><div style="line-height:2.2;">{chips}</div>', unsafe_allow_html=True)
+                if expl:
+                    st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin:12px 0 6px;">Model Reasoning (Assistive)</div><div style="background:{BG};border:1px solid {BORDER};border-left:3px solid {BLUE};border-radius:4px;padding:10px 12px;font-size:.8rem;color:{T2};line-height:1.75;">{expl}</div>', unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PAGE 4 — BIAS INSIGHTS
-# ─────────────────────────────────────────────────────────────────────────────
-elif page == "⚖️  Bias Insights":
-    page_header("⚖️", "Bias & Fairness Insights",
-                "Statistical signals that may indicate unfair ranking patterns")
+# ── PAGE 3: EXPLANATIONS ──────────────────────────────────────────────────────
+elif page == "Explanations":
+    pg("Candidate Explanations", "Scoring rationale for each candidate. Model reasoning is assistive only.")
+    jobs, _ = api("get", "/jobs/")
+    if not jobs or not jobs["jobs"]: st.info("Add a job and run scoring first."); st.stop()
+    jopts = {f"{j['title']}  (ID: {j['id']})": j["id"] for j in jobs["jobs"]}  # type: ignore
+    sel = st.selectbox("Job", list(jopts.keys()), label_visibility="collapsed")
+    res, err = api("get", f"/rank/{jopts[sel]}/results")
+    if err or not res: st.info("Run scoring first."); st.stop()
+    cands = res["ranked_candidates"]  # type: ignore
+    sec(f"{len(cands)} candidates")
 
-    jobs_data, _ = api("get", "/jobs/")
-    if not jobs_data or not jobs_data["jobs"]:
-        st.info("Add a job and run ranking first."); st.stop()
+    for c in cands:
+        rank=c["rank"]; name=c.get("candidate_name","—"); tot=c["total_score"]
+        bdd=c.get("score_breakdown",{}); mat=c.get("matched_skills",[]); mis=c.get("missing_skills",[])
+        expl=c.get("explanation",""); fg,bg2,bd2=scolor(tot)
+        with st.expander(f"#{rank}  {name}  —  {int(tot*100)}%  ({slabel(tot)})"):
+            sc, sk = st.columns([1,1.3], gap="large")
+            with sc:
+                st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Score Breakdown</div>', unsafe_allow_html=True)
+                for mk,ml in [("total","Overall"),("skill_match","Skill Match"),("experience_alignment","Experience"),("role_relevance","Role Fit")]:
+                    v=bdd.get(mk, tot if mk=="total" else 0); p=int(v*100); cf,_,_=scolor(v)
+                    st.markdown(f'<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:.78rem;color:{T3};">{ml}</span><span style="font-size:.78rem;font-weight:700;color:{cf};">{p}%</span></div>{pbar(p,cf)}</div>', unsafe_allow_html=True)
+            with sk:
+                if mat:
+                    chips=" ".join(skill_chip(s,GREEN,GREEN_LT,GREEN_BD) for s in mat)
+                    st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{GREEN};text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Matched</div><div style="line-height:2.2;">{chips}</div>', unsafe_allow_html=True)
+                if mis:
+                    chips=" ".join(skill_chip(s,RED,RED_LT,RED_BD) for s in mis)
+                    st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{RED};text-transform:uppercase;letter-spacing:.07em;margin:10px 0 6px;">Gaps</div><div style="line-height:2.2;">{chips}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin:14px 0 6px;">Model Reasoning (Assistive)</div><div style="background:{BG};border:1px solid {BORDER};border-left:3px solid {BLUE};border-radius:4px;padding:10px 12px;font-size:.8125rem;color:{T2};line-height:1.75;">{expl}</div>', unsafe_allow_html=True)
+            if st.button("Load Resume Text", key=f"rt_{c['resume_id']}_{rank}"):  # type: ignore
+                rd2, _ = api("get", f"/resumes/{c['resume_id']}")  # type: ignore
+                if rd2: st.markdown(f'<pre style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:12px;font-size:.78rem;color:{T2};max-height:300px;overflow-y:auto;white-space:pre-wrap;">{rd2.get("raw_text","")}</pre>', unsafe_allow_html=True)
 
-    # pyre-ignore
-    job_opts = {f"{j['title']}  (ID: {j['id']})": j["id"] for j in jobs_data["jobs"]}
-    sel = st.selectbox("Select Job", list(job_opts.keys()), label_visibility="collapsed")
-    job_id = job_opts[sel]
 
-    if st.button("🔍  Analyze Bias", use_container_width=False):
-        with st.spinner("Running statistical analysis…"):
-            report, err = api("get", f"/bias/{job_id}")
-        if err: st.error(err); st.stop()
-        st.session_state[f"bias_{job_id}"] = report
+# ── PAGE 4: FAIRNESS AUDIT ────────────────────────────────────────────────────
+elif page == "Fairness Audit":
+    pg("Fairness Audit", "Statistical signals in scoring patterns. Review before finalising decisions.")
+    st.markdown(f'<div style="background:{AMBER_LT};border:1px solid {AMBER_BD};border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:.8rem;color:{AMBER};line-height:1.6;"><b>Note:</b> Statistical indicators only — not confirmation of bias. Apply professional judgement.</div>', unsafe_allow_html=True)
 
-    report = st.session_state.get(f"bias_{job_id}")
-    if not report:
-        st.markdown("""
-<div style="background:#111827;border:1px dashed #1e2d45;border-radius:12px;
-            padding:3rem;text-align:center;">
-<div style="font-size:2.5rem;margin-bottom:12px;">⚖️</div>
-<div style="color:#64748b;font-size:0.9rem;">
-Click <strong style="color:#f1f5f9;">Analyze Bias</strong> to check for fairness signals
-</div>
-</div>
-""", unsafe_allow_html=True)
+    jobs, _ = api("get", "/jobs/")
+    if not jobs or not jobs["jobs"]: st.info("Add a job and run scoring first."); st.stop()
+    jopts = {f"{j['title']}  (ID: {j['id']})": j["id"] for j in jobs["jobs"]}  # type: ignore
+    sel = st.selectbox("Job", list(jopts.keys()), label_visibility="collapsed")
+    jid = jopts[sel]
+    if st.button("Run Fairness Analysis"):
+        with st.spinner("Analysing…"):
+            r, e = api("get", f"/bias/{jid}")
+        if e: st.error(e); st.stop()
+        st.session_state[f"bias_{jid}"] = r
+
+    rep = st.session_state.get(f"bias_{jid}")
+    if not rep:
+        info_card(f'<div style="text-align:center;padding:2rem 0;font-size:.9rem;color:{T3};">Select a job and click <b style="color:{T1};">Run Fairness Analysis</b>.</div>')
         st.stop()
 
-    # ── Metric cards ──────────────────────────────────────────────────────
-    section_title("Fairness Metrics")
-    b1, b2, b3 = st.columns(3)
-    skew = report.get("experience_skew_score", 0)
-    kw   = report.get("keyword_overfit_score", 0)
-    n_s  = len(report.get("bias_signals", []))
+    skew=rep.get("experience_skew_score",0); kw=rep.get("keyword_overfit_score",0); ns=len(rep.get("bias_signals",[]))
+    def bc(v,lo=.45,hi=.7): return RED if v>=hi else AMBER if v>=lo else GREEN
+    fa1,fa2,fa3=st.columns(3)
+    with fa1: stat_box(f"{skew:.2f}","Experience Skew",bc(skew))
+    with fa2: stat_box(f"{kw:.2f}","Keyword Overfit",bc(kw,.5,.75))
+    with fa3: stat_box(str(ns),"Signals Flagged",bc(ns,1,2))
 
-    def bias_color(v, lo=0.45, hi=0.7):
-        return "#ef4444" if v >= hi else "#f59e0b" if v >= lo else "#10b981"
-
-    with b1: metric_card(f"{skew:.2f}", "Experience Skew", bias_color(skew), "📈")
-    with b2: metric_card(f"{kw:.2f}",   "Keyword Overfit", bias_color(kw, 0.5, 0.75), "🔑")
-    with b3: metric_card(str(n_s), "Bias Signals", bias_color(n_s, 1, 2), "🚩")
-
-    # ── Factor dominance chart ────────────────────────────────────────────
-    fd = report.get("factor_dominance", [])
+    fd=rep.get("factor_dominance",[])
     if fd:
-        section_title("Factor Dominance")
-        try:
-            # pyre-ignore[21]
-            import plotly.graph_objects as go
-            factors  = [f["factor_name"].replace("_", " ").title() for f in fd]
-            contribs = [f["average_contribution"] for f in fd]
-            fig = go.Figure(go.Bar(
-                x=factors, y=contribs,
-                marker={"color": ["#3b82f6", "#10b981", "#f59e0b"], "line": {"color": "rgba(0,0,0,0)", "width": 0}},
-                text=[f"{v:.3f}" for v in contribs],
-                textposition="outside",
-                textfont={"color": "#94a3b8", "size": 12},
-            ))
-            fig.update_layout(
-                paper_bgcolor="#f1f5f9",
-                plot_bgcolor="#ffffff",
-                font={"color": "#475569", "family": "Inter"},
-                yaxis={"gridcolor": "#e2e8f0", "color": "#64748b", "zeroline": False},
-                xaxis={"color": "#64748b"},
-                margin={"t": 30, "b": 20, "l": 20, "r": 20},
-                showlegend=False,
-                height=260,
-                bargap=0.4,
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        except ImportError:
-            st.info("plotly not installed — run: pip install plotly")
+        sec("Factor Contribution")
+        fig=go.Figure(go.Bar(
+            x=[f["factor_name"].replace("_"," ").title() for f in fd],
+            y=[f["average_contribution"] for f in fd],
+            marker={"color":[BLUE,GREEN,AMBER],"line":{"width":0}},
+            text=[f"{f['average_contribution']:.3f}" for f in fd],
+            textposition="outside",textfont={"color":T3,"size":11},
+        ))
+        fig.update_layout(paper_bgcolor=BG,plot_bgcolor=SURFACE,
+            font={"color":T3,"family":"Inter"},
+            yaxis={"gridcolor":BORDER,"zeroline":False},
+            margin={"t":24,"b":8,"l":8,"r":8},showlegend=False,height=220,bargap=.45)
+        st.plotly_chart(fig,use_container_width=True)
 
-    # ── Bias signals ──────────────────────────────────────────────────────
-    section_title("Bias Signals Detected")
-    signals = report.get("bias_signals", [])
-    if not signals:
-        st.markdown("""
-<div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);
-            border-radius:10px;padding:1.2rem 1.5rem;display:flex;
-            align-items:center;gap:12px;">
-<div style="font-size:1.5rem;">✅</div>
-<div>
-<div style="color:#10b981;font-weight:600;font-size:0.9rem;">No Bias Signals Detected</div>
-<div style="color:#475569;font-size:0.8rem;margin-top:2px;">
-  No statistically significant bias patterns found in this ranking.
-</div>
-</div>
-</div>
-""", unsafe_allow_html=True)
+    sec("Flagged Signals")
+    sigs=rep.get("bias_signals",[])
+    scm={"high":(RED,RED_LT,RED_BD),"medium":(AMBER,AMBER_LT,AMBER_BD),"low":(GREEN,GREEN_LT,GREEN_BD)}
+    if not sigs:
+        st.markdown(f'<div style="background:{GREEN_LT};border:1px solid {GREEN_BD};border-radius:8px;padding:1rem 1.25rem;font-size:.875rem;color:{GREEN};font-weight:600;">No signals detected.</div>', unsafe_allow_html=True)
     else:
-        sev_color = {"high": "#ef4444", "medium": "#f59e0b", "low": "#10b981"}
-        for sig in signals:
-            sev  = sig.get("severity", "low")
-            col  = sev_color.get(sev, "#94a3b8")
-            st.markdown(f"""
-<div style="background:#ffffff;border:1px solid {col}33;
-            border-left:4px solid {col};border-radius:10px;
-            padding:1rem 1.2rem;margin-bottom:8px;">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-<span style="background:{col}22;color:{col};border:1px solid {col}44;
-             font-size:0.7rem;font-weight:700;padding:2px 8px;
-             border-radius:20px;text-transform:uppercase;
-             letter-spacing:.05em;">{sev}</span>
-<span style="color:#0f172a;font-weight:600;font-size:0.9rem;">
-  {sig.get("signal_type","").replace("_"," ").title()}
-</span>
-</div>
-<div style="color:#475569;font-size:0.85rem;line-height:1.6;">
-{sig.get("description","")}
-</div>
-</div>
-""", unsafe_allow_html=True)
+        for sg in sigs:
+            sev=sg.get("severity","low"); fg2,bg2,bd3=scm.get(sev,scm["low"])
+            st.markdown(f'<div style="background:{SURFACE};border:1px solid {bd3};border-left:4px solid {fg2};border-radius:8px;padding:.9rem 1.1rem;margin-bottom:8px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;"><span style="background:{bg2};color:{fg2};font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;">{sev}</span><span style="color:{T1};font-weight:600;font-size:.875rem;">{sg.get("signal_type","").replace("_"," ").title()}</span></div><div style="font-size:.8125rem;color:{T2};line-height:1.65;">{sg.get("description","")}</div></div>', unsafe_allow_html=True)
 
-    # ── Disclaimer ───────────────────────────────────────────────────────
-    section_title("Ethical Disclaimer")
-    st.markdown(f"""
-<div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);
-            border-radius:10px;padding:1.2rem 1.5rem;">
-<div style="color:#f59e0b;font-size:0.8rem;line-height:1.7;">
-⚠️ {report.get("ethical_disclaimer","")}
-</div>
-</div>
-""", unsafe_allow_html=True)
+    sec("Ethical Disclaimer")
+    st.markdown(f'<div style="background:{BG};border:1px solid {BORDER};border-radius:8px;padding:1rem 1.25rem;font-size:.8125rem;color:{T2};line-height:1.7;">{rep.get("ethical_disclaimer","")}</div>', unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PAGE 5 — FEEDBACK
-# ─────────────────────────────────────────────────────────────────────────────
-elif page == "💬  Feedback":
-    page_header("💬", "Recruiter Feedback",
-                "Accept or reject candidates — drives adaptive weight learning")
+# ── PAGE 5: FEEDBACK ──────────────────────────────────────────────────────────
+elif page == "Feedback":
+    pg("Recruiter Feedback", "Record your decision on each candidate. Feedback is optional and calibrates future scoring.")
+    jobs, _ = api("get", "/jobs/")
+    if not jobs or not jobs["jobs"]: st.info("Add a job and run scoring first."); st.stop()
+    jopts = {f"{j['title']}  (ID: {j['id']})": j["id"] for j in jobs["jobs"]}  # type: ignore
+    sel = st.selectbox("Job", list(jopts.keys()), label_visibility="collapsed")
+    res, err = api("get", f"/rank/{jopts[sel]}/results")
+    if err or not res: st.info("Run scoring first."); st.stop()
+    cands = res["ranked_candidates"]  # type: ignore
 
-    jobs_data, _ = api("get", "/jobs/")
-    if not jobs_data or not jobs_data["jobs"]:
-        st.info("Add a job and run ranking first."); st.stop()
-
-    # pyre-ignore
-    job_opts = {f"{j['title']}  (ID: {j['id']})": j["id"] for j in jobs_data["jobs"]}
-    sel = st.selectbox("Select Job", list(job_opts.keys()), label_visibility="collapsed")
-    job_id = job_opts[sel]
-
-    results, err = api("get", f"/rank/{job_id}/results")
-    if err or not results:
-        st.info("Run ranking first."); st.stop()
-
-    # pyre-ignore
-    candidates = results["ranked_candidates"]
-
-    # Stats row
     stats, _ = api("get", "/feedback/stats")
     if stats:
-        section_title("Feedback Statistics")
-        s1, s2, s3, s4 = st.columns(4)
-        total_fb = stats.get("total_feedback", 0)
-        acc      = stats.get("accept_count", 0)
-        rej      = stats.get("reject_count", 0)
-        acc_rate = f"{int(acc/total_fb*100)}%" if total_fb else "—"
-        with s1: metric_card(str(total_fb), "Total Feedback", "#3b82f6", "📊")
-        with s2: metric_card(str(acc), "Accepted", "#10b981", "✅")
-        with s3: metric_card(str(rej), "Rejected", "#ef4444", "❌")
-        with s4: metric_card(acc_rate, "Accept Rate", "#6366f1", "📈")
+        sec("Feedback Summary")
+        tf=stats.get("total_feedback",0); ac=stats.get("accept_count",0); rj=stats.get("reject_count",0)
+        fs1,fs2,fs3,fs4=st.columns(4)
+        with fs1: stat_box(tf,"Total Submitted")
+        with fs2: stat_box(ac,"Progressed",GREEN)
+        with fs3: stat_box(rj,"Declined",RED)
+        with fs4: stat_box(f"{int(ac/tf*100)}%" if tf else "—","Progress Rate")
 
-    section_title("Submit Feedback")
-
-    for c in candidates:
-        rid   = c.get("ranking_id")
+    sec("Review Queue")
+    for c in cands:
+        rid=c.get("ranking_id")
         if not rid: continue
-        name  = c.get("candidate_name", "—")
-        rank  = c["rank"]
-        total = c["total_score"]
-        color = score_color(total)
-
-        st.markdown(f"""
-<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;
-            padding:1rem 1.4rem;margin-bottom:4px;display:flex;
-            align-items:center;gap:12px;">
-<div style="background:#f1f5f9;color:#64748b;font-size:0.75rem;
-              font-weight:700;min-width:32px;height:32px;border-radius:50%;
-              display:flex;align-items:center;justify-content:center;">
-    #{rank}
-</div>
-<div style="flex:1;">
-    <span style="color:#0f172a;font-weight:600;font-size:0.9rem;">{name}</span>
-</div>
-<div style="color:{color};font-size:0.85rem;font-weight:700;">
-    {int(total*100)}%
-</div>
-</div>
-""", unsafe_allow_html=True)
-
-        fc1, fc2, fc3 = st.columns([1, 2, 1])
+        name=c.get("candidate_name","—"); rank=c["rank"]; tot=c["total_score"]
+        fg,bg2,bd2=scolor(tot)
+        st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:.85rem 1.25rem;margin-bottom:4px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 6px rgba(0,0,0,.05);"><div style="font-size:.8rem;font-weight:700;color:{T3};min-width:28px;text-align:center;">#{rank}</div><div style="flex:1;font-size:.9rem;font-weight:600;color:{T1};">{name}</div><div style="font-size:.85rem;font-weight:800;color:{fg};margin-right:8px;">{int(tot*100)}%</div>{badge(slabel(tot),fg,bg2,bd2)}</div>', unsafe_allow_html=True)
+        fc1,fc2,fc3=st.columns([1,2,1])
         with fc1:
-            decision = st.radio("", ["accept", "reject"],
-                                key=f"d_{rid}", horizontal=True,
-                                label_visibility="collapsed")
+            dec=st.radio("",["Progress","Decline"],key=f"d_{rid}",horizontal=True,label_visibility="collapsed")
         with fc2:
-            notes = st.text_input("", key=f"n_{rid}",
-                                  placeholder="Optional notes…",
-                                  label_visibility="collapsed")
+            notes=st.text_input("",key=f"n_{rid}",placeholder="Optional notes…",label_visibility="collapsed")
         with fc3:
-            if st.button("Submit", key=f"s_{rid}", use_container_width=True):
-                resp, err = api("post", "/feedback/",
-                    json={"ranking_id": rid, "decision": decision, "notes": notes})
+            if st.button("Submit",key=f"s_{rid}",use_container_width=True):
+                resp,ferr=api("post","/feedback/",json={"ranking_id":rid,"decision":"accept" if dec=="Progress" else "reject","notes":notes})
                 if resp:
-                    msg = f"✅ **{name}** — {decision}"
-                    if resp.get("weight_adjustment_triggered"):
-                        msg += f"  🔄 Weights updated!"
+                    msg=f"{name}: {dec}d"
+                    if resp.get("weight_adjustment_triggered"): msg+=" — weights updated"
                     st.success(msg)
-                else:
-                    st.error(err)
-
-        # pyre-ignore
+                else: st.error(ferr)
         st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
