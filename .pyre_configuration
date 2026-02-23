@@ -1,0 +1,18 @@
+{
+  "site_package_search_strategy": "pep561",
+  "source_directories": [
+    "."
+  ],
+  "search_path": [
+    ".",
+    "app",
+    "ui"
+  ],
+  "exclude": [
+    ".*/__pycache__/.*",
+    ".*/\\.git/.*",
+    ".*/node_modules/.*"
+  ],
+  "strict": false,
+  "ignore_all_errors": false
+}

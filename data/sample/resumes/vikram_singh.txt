@@ -1,0 +1,30 @@
+Vikram Singh
+vikram.singh@protonmail.com | Pune | 10+ years experience
+
+SUMMARY
+Principal Data Scientist and team lead with 10+ years of experience. Expert in statistical modeling, machine learning, and building AI-driven products. Previously led data science teams of 8 at a Fortune 500 company.
+
+TECHNICAL SKILLS
+Python, R, Machine Learning, Deep Learning, NLP, Computer Vision, TensorFlow, PyTorch, keras, scikit-learn, XGBoost, LightGBM, Hugging Face, spaCy, NLTK, BERT, Apache Spark, Hadoop, Hive, SQL, PostgreSQL, MongoDB, AWS, Azure, Docker, Kubernetes, MLflow, Airflow, Tableau, Git, Linux, Bash
+
+PROFESSIONAL EXPERIENCE
+
+Principal Data Scientist (Team Lead) | MegaCorp Analytics, Pune
+Jan 2018 – Present
+- Led a team of 8 data scientists delivering 12 production ML models across fraud, risk, and pricing
+- Architected end-to-end ML platform reducing model-to-production time by 70%
+- Drove adoption of MLOps practices: experiment tracking, model versioning, automated monitoring
+- Designed NLP pipeline for contract analysis saving 2,000 human hours/month
+
+Senior Data Scientist | Insurance Tech Co, Mumbai
+Feb 2015 – Dec 2017
+- Built predictive models for claims fraud detection achieving 87% precision at 30% recall
+- Developed time-series forecasting models for premium pricing
+
+Data Analyst | Consulting Firm, Delhi
+Aug 2013 – Jan 2015
+- Statistical analysis and business reporting using R and Excel
+
+EDUCATION
+M.Sc, Statistics | Delhi School of Economics | 2013
+B.Sc, Mathematics | Hindu College, Delhi University | 2011

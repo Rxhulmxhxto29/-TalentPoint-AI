@@ -1,0 +1,24 @@
+Sneha Reddy
+sneha.reddy@outlook.com | Bengaluru
+
+SUMMARY
+NLP Research Engineer with 3 years of academic and industry research experience. Focused on text generation, question answering, and transformer fine-tuning. Published 2 papers at ACL and EMNLP.
+
+SKILLS
+Python, NLP, Hugging Face Transformers, BERT, GPT, T5, spaCy, NLTK, PyTorch, TensorFlow, scikit-learn, NumPy, Pandas, Docker, Git, Linux, SQL, FastAPI, Research, Academic Writing, LaTeX
+
+EXPERIENCE
+
+NLP Research Engineer | AI Research Lab, Bengaluru
+Jul 2022 – Present
+- Fine-tuned BERT and T5 models for domain-specific QA tasks (F1 improvement: +12%)
+- Built production NLP microservices using FastAPI with Hugging Face pipelines
+- Collaborated with product teams to deploy NLP features to 200K users
+
+NLP Research Intern | IISc, Bengaluru
+Jan 2022 – Jun 2022
+- Implemented transformer-based text summarization for multilingual documents
+
+EDUCATION
+M.Tech, AI & ML | Indian Institute of Science (IISc), Bengaluru | 2022
+B.Tech, Computer Science | IIIT Hyderabad | 2020

@@ -1,0 +1,33 @@
+Senior Machine Learning Engineer
+
+About the Role:
+We are looking for a Senior ML Engineer to join our NLP platform team. You will design, build, and operate production ML systems that power our core product features. This is a hands-on engineering role requiring both ML depth and software engineering maturity.
+
+Required Skills:
+- Python
+- Machine Learning
+- Deep Learning
+- NLP
+- PyTorch or TensorFlow
+- Hugging Face Transformers
+- scikit-learn
+- MLflow or similar MLOps tooling
+- Docker
+- SQL
+- Git
+
+Nice to Have:
+- Kubernetes
+- AWS or GCP
+- Apache Spark
+- PySpark
+- FastAPI
+- A/B Testing
+- spaCy
+- BERT
+
+Requirements:
+- Minimum 5 years of professional experience in ML engineering
+- Experience deploying ML models to production
+- Strong communication skills
+- Experience with model monitoring and retraining pipelines

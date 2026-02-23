@@ -1,0 +1,26 @@
+Junior Data Analyst
+
+About the Role:
+We are growing our Analytics team and looking for a curious, detail-oriented Junior Data Analyst. You will work with business stakeholders to understand their data needs, build dashboards, and perform analysis to support strategic decisions.
+
+Required Skills:
+- SQL
+- Python
+- Pandas
+- Excel
+- Data Visualization
+- Tableau or Power BI
+- Communication
+- Problem Solving
+
+Nice to Have:
+- scikit-learn
+- Machine Learning
+- Statistical Modeling
+- Agile
+- Git
+
+Requirements:
+- 0 to 2 years of experience in analytics or data science
+- Ability to present findings clearly to non-technical stakeholders
+- Attention to detail

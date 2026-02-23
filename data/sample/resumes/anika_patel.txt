@@ -1,0 +1,25 @@
+Anika Patel
+anika.patel@mail.com | Hyderabad | GitHub: github.com/anikapatel
+
+PROFESSIONAL SUMMARY
+Full-stack software engineer with 4 years of experience, transitioning into ML engineering. Built and deployed two production ML-powered features at current employer. Proficient in backend APIs and cloud infrastructure.
+
+SKILLS
+Python, JavaScript, TypeScript, React, Node.js, FastAPI, Flask, Docker, Kubernetes, AWS, GCP, PostgreSQL, MongoDB, Redis, Machine Learning, scikit-learn, TensorFlow (basics), SQL, Git, CI/CD, GitHub Actions, Agile
+
+WORK EXPERIENCE
+
+Software Engineer | FinTech Startup, Hyderabad
+Mar 2022 – Present
+- Designed and deployed REST APIs serving 500K daily requests using FastAPI and PostgreSQL
+- Built a fraud detection feature using scikit-learn Decision Trees, reducing false positives by 20%
+- Containerized entire ML inference pipeline using Docker and deployed to GCP via Kubernetes
+- Introduced CI/CD pipelines using GitHub Actions, cutting deployment time by 60%
+
+Junior Software Engineer | IT Services Co, Chennai
+Aug 2020 – Feb 2022
+- Developed React frontend and Node.js backends for 3 enterprise client projects
+- Integrated third-party APIs and payment gateways
+
+EDUCATION
+B.E, Information Technology | BITS Pilani | 2020

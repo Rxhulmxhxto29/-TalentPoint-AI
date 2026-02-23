@@ -1,0 +1,26 @@
+Priya Sharma
+priya.sharma@email.com | +91-9876543210 | LinkedIn: linkedin.com/in/priyasharma
+
+SUMMARY
+Senior Machine Learning Engineer with 7 years of experience building production ML systems. Specialized in NLP, deep learning, and MLOps. Passionate about building scalable, explainable AI products.
+
+SKILLS
+Python, TensorFlow, PyTorch, scikit-learn, spaCy, Hugging Face Transformers, BERT, NLP, Deep Learning, Machine Learning, MLflow, Docker, Kubernetes, AWS, SQL, PostgreSQL, Apache Spark, PySpark, FastAPI, Flask, Git, Linux, A/B Testing, Feature Engineering
+
+EXPERIENCE
+
+Senior ML Engineer | TechCorp AI, Bangalore
+Jan 2021 – Present
+- Led NLP team building production text classification and NER pipelines processing 5M documents/day
+- Reduced model inference latency by 40% via quantization and batching optimizations
+- Deployed models to AWS SageMaker with automated retraining pipelines using MLflow and Airflow
+
+ML Engineer | Infosys AI Lab, Pune
+Jul 2017 – Dec 2020
+- Built recommendation systems using collaborative filtering and matrix factorization
+- Developed internal MLOps tooling reducing model deployment time from weeks to hours
+- Worked with cross-functional teams to productionize 8 ML models across different business domains
+
+EDUCATION
+M.Tech, Computer Science (AI Specialization) | IIT Bombay | 2017
+B.Tech, Computer Science | NIT Trichy | 2015

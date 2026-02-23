@@ -1,0 +1,28 @@
+NLP Engineer
+
+About the Role:
+Our Research Engineering team is hiring an NLP Engineer to build and productionize language understanding systems. You will work closely with research scientists to translate research papers into production-grade services.
+
+Required Skills:
+- Python
+- NLP
+- Hugging Face Transformers
+- BERT
+- spaCy
+- PyTorch
+- FastAPI
+- Docker
+- Git
+
+Nice to Have:
+- AWS or GCP
+- FAISS
+- scikit-learn
+- Kubernetes
+- MLflow
+- Research background or publications
+
+Requirements:
+- 2 to 5 years of experience in NLP engineering or research
+- Ability to read and implement techniques from academic papers
+- Experience with named entity recognition, classification, or text generation systems

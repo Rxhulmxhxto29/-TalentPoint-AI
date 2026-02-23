@@ -1,0 +1,24 @@
+Rahul Verma
+rahul.verma@gmail.com | Mumbai, India
+
+OBJECTIVE
+Ambitious junior data analyst with 1.5 years of experience seeking a growth role in data science. Strong foundation in statistical analysis and data visualization.
+
+TECHNICAL SKILLS
+Python, Pandas, NumPy, Matplotlib, Seaborn, SQL, MySQL, Excel, Tableau, Power BI, scikit-learn, Git
+
+EXPERIENCE
+
+Junior Data Analyst | ReportHub Analytics, Mumbai
+Jun 2024 – Present
+- Created weekly business intelligence dashboards for senior management using Tableau and Power BI
+- Wrote SQL queries to extract and aggregate KPIs from transactional databases
+- Built basic prediction models using linear regression to forecast sales
+
+Intern Data Analyst | StartupXYZ, Mumbai
+Jan 2024 – May 2024
+- Performed EDA on customer churn dataset; identified key churn features
+- Automated Excel reporting workflows using Python scripts
+
+EDUCATION
+B.Sc, Statistics | University of Mumbai | 2023
