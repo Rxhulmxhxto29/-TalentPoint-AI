@@ -204,9 +204,24 @@ if page == "Input":
         st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
         jt = st.text_input("Job title", placeholder="e.g. Senior Software Engineer")
         jx = st.text_area("Job description", placeholder="Required:\n- Python, FastAPI\n- 5+ years\n\nPreferred:\n- Docker, AWS", height=300)
-        if st.button("Save Job Description", use_container_width=True):
+        
+        with st.expander("⚖️ Scoring Weights Configuration", expanded=False):
+            st.markdown(f'<div style="font-size:.78rem;color:{T3};margin-bottom:1rem;">Adjust how the AI prioritizes candidates. Total must sum to 100%.</div>', unsafe_allow_html=True)
+            w_sk = st.slider("Skill Match Weight %", 10, 70, 40)
+            w_ex = st.slider("Experience Alignment Weight %", 10, 70, 30)
+            w_rf = 100 - (w_sk + w_ex)
+            
+            if not (10 <= w_rf <= 70):
+                st.error(f"Invalid Role Fit weight ({w_rf}%). Ensure Sk + Ex sum to between 30% and 90%.")
+                w_ready = False
+            else:
+                st.info(f"Role Fit (Context) weight will be {w_rf}%")
+                w_ready = True
+
+        if st.button("Save Job Description", use_container_width=True, disabled=not w_ready if 'w_ready' in locals() else False):
             if jt and jx and len(jx) >= 50:
-                d, e = api("post", "/jobs/", json={"title": jt, "description": jx})
+                weights = {"skill_match": w_sk/100, "experience_alignment": w_ex/100, "role_relevance": w_rf/100}
+                d, e = api("post", "/jobs/", json={"title": jt, "description": jx, "weights": weights})
                 if d:
                     req = d.get("required_skills", [])
                     pref = d.get("preferred_skills", [])
@@ -271,7 +286,35 @@ elif page == "Results":
     with m1: stat_box(len(cands), "Candidates Scored")
     with m2: stat_box(f"{int(top*100)}%", "Highest Score", GREEN)
     with m3: stat_box(strong, "Strong Matches", BLUE)
-    with m4: stat_box(f"{int(weights.get('skill_match',.4)*100)}%", "Skill Weight")
+    with m4: stat_box(f"{int(weights.get('experience_alignment',0.3)*100)}%", "Experience Weight", AMBER)
+
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+    
+    with st.expander("📝 Scoring Methodology & Transparency", expanded=False):
+        st.markdown(f"""
+        <div style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:1.25rem;">
+            <div style="font-size:.9rem;font-weight:700;color:{T1};margin-bottom:0.75rem;">How these candidates were ranked:</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin-bottom:1.25rem;">
+                <div style="padding:10px;background:{BG};border-radius:6px;text-align:center;">
+                    <div style="font-size:1.1rem;font-weight:800;color:{BLUE};">{int(weights.get('skill_match',0.4)*100)}%</div>
+                    <div style="font-size:.65rem;font-weight:700;color:{T3};text-transform:uppercase;">Skill Match</div>
+                </div>
+                <div style="padding:10px;background:{BG};border-radius:6px;text-align:center;">
+                    <div style="font-size:1.1rem;font-weight:800;color:{AMBER};">{int(weights.get('experience_alignment',0.3)*100)}%</div>
+                    <div style="font-size:.65rem;font-weight:700;color:{T3};text-transform:uppercase;">Experience</div>
+                </div>
+                <div style="padding:10px;background:{BG};border-radius:6px;text-align:center;">
+                    <div style="font-size:1.1rem;font-weight:800;color:{T2};">{int(weights.get('role_relevance',0.3)*100)}%</div>
+                    <div style="font-size:.65rem;font-weight:700;color:{T3};text-transform:uppercase;">Role Context</div>
+                </div>
+            </div>
+            <div style="font-size:.825rem;color:{T2};line-height:1.6;">
+                <b style="color:{AMBER};">Years of Experience (YoE) Focus:</b> This role places a significant weight on experience alignment. 
+                The AI analyzes the length and progression of the candidate's career relative to the job requirements. 
+                Candidates with high YoE scores have careers that closely match the seniority levels expected for this role.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 

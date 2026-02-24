@@ -120,7 +120,7 @@ def run_ranking(job_id: int, db: sqlite3.Connection = Depends(get_db)):
 @router.get("/{job_id}/results")
 def get_ranking_results(job_id: int, db: sqlite3.Connection = Depends(get_db)):
     """Fetch the most recent saved ranking for a job (without re-running)."""
-    job_row = db.execute("SELECT id, title FROM jobs WHERE id = ?", (job_id,)).fetchone()
+    job_row = db.execute("SELECT id, title, weights_json FROM jobs WHERE id = ?", (job_id,)).fetchone()
     if not job_row:
         raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
 
@@ -159,6 +159,7 @@ def get_ranking_results(job_id: int, db: sqlite3.Connection = Depends(get_db)):
     return {
         "job_id": job_id,
         "job_title": job_row["title"],
+        "weights_used": json.loads(job_row["weights_json"]),
         "candidate_count": len(candidates),
         "ranked_candidates": candidates,
     }

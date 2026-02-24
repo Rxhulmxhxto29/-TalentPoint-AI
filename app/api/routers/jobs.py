@@ -38,7 +38,8 @@ def create_job(payload: JobCreate, db: sqlite3.Connection = Depends(get_db)):
     parsed["preferred_skills"] = sorted(set(parsed["preferred_skills"]) | set(extra))
 
     parsed_json = json.dumps(parsed)
-    weights_json = json.dumps(DEFAULT_SCORING_WEIGHTS)
+    weights = payload.weights.model_dump() if payload.weights else DEFAULT_SCORING_WEIGHTS
+    weights_json = json.dumps(weights)
 
     cursor = db.execute(
         """
