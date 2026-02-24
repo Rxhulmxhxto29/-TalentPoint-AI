@@ -5,7 +5,7 @@ CRITICAL: DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER CONSENT.
 This file contains the hardcoded "Gold Standard" UI/UX tokens, colors, and global CSS.
 """
 
-import streamlit as st
+import streamlit as st  # type: ignore
 
 # ── Color Palette (Enterprise v3 Gold Standard) ──────────────────────────────────
 # Background & Surface

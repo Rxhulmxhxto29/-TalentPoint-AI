@@ -3,16 +3,23 @@
 # The UI/UX tokens and CSS are locked in ui/design_system.py.
 
 # pyre-ignore[21]
-import streamlit as st
-import plotly.graph_objects as go
-import requests
+import streamlit as st  # type: ignore
+import plotly.graph_objects as go  # type: ignore
+import requests  # type: ignore
 
 # Import locked Design System
-from ui.design_system import (
-    inject_custom_css, BG, SURFACE, BORDER, BLUE, BLUE_DK, BLUE_LT, BLUE_BD,
-    GREEN, GREEN_LT, GREEN_BD, AMBER, AMBER_LT, AMBER_BD, RED, RED_LT, RED_BD,
-    T1, T2, T3, T4
-)
+try:
+    from design_system import (  # type: ignore
+        inject_custom_css, BG, SURFACE, BORDER, BLUE, BLUE_DK, BLUE_LT, BLUE_BD,
+        GREEN, GREEN_LT, GREEN_BD, AMBER, AMBER_LT, AMBER_BD, RED, RED_LT, RED_BD,
+        T1, T2, T3, T4
+    )
+except ImportError:
+    from ui.design_system import (  # type: ignore
+        inject_custom_css, BG, SURFACE, BORDER, BLUE, BLUE_DK, BLUE_LT, BLUE_BD,
+        GREEN, GREEN_LT, GREEN_BD, AMBER, AMBER_LT, AMBER_BD, RED, RED_LT, RED_BD,
+        T1, T2, T3, T4
+    )
 
 def scolor(s):
     if s >= .70: return GREEN, GREEN_LT, GREEN_BD
