@@ -122,11 +122,18 @@ header[data-testid="stHeader"], [data-testid="stHeader"], [data-testid="stAppHea
 }}
 
 /* Dashboard Cards (Expander, Cards) */
+/* Dropdowns / Selectboxes */
 div[data-baseweb="select"]{{
-  background:{SURFACE}!important;border:1.5px solid {BORDER}!important;
+  background:{BLUE_LT}!important;
+  border:1.5px solid {BLUE_BD}!important;
   border-radius:8px!important;
+  transition:all .2s ease!important;
 }}
-div[data-baseweb="select"] *{{color:{T1}!important;}}
+div[data-baseweb="select"]:hover{{
+  border-color:{BLUE}!important;
+  background:#E5ECFF!important;
+}}
+div[data-baseweb="select"] *{{color:{T1}!important;font-weight:500!important;}}
 
 div[data-testid="stExpander"]{{
   background:{SURFACE}!important;border:1px solid {BORDER}!important;
