@@ -528,7 +528,16 @@ elif page == "Feedback":
         if not rid: continue
         name=c.get("candidate_name","—"); rank=c["rank"]; tot=c["total_score"]
         fg,bg2,bd2=scolor(tot)
-        html = f'<div style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:.85rem 1.25rem;margin-bottom:4px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 6px rgba(0,0,0,.05);"><div style="font-size:.8rem;font-weight:700;color:{T3};min-width:28px;text-align:center;">#{rank}</div><div style="flex:1;font-size:.9rem;font-weight:600;color:{T1};">{name}</div><div style="font-size:.85rem;font-weight:800;color:{fg};margin-right:8px;">{int(tot*100)}%</div>{str(badge(slabel(tot),fg,bg2,bd2))}</div>'
+        prev = fb_map.get(rid)
+        status_badge = ""
+        if prev == "accept":
+            status_badge = f' {badge("PROGRESSED", GREEN, GREEN_LT, GREEN_BD)}'
+        elif prev == "reject":
+            status_badge = f' {badge("DECLINED", RED, RED_LT, RED_BD)}'
+        else:
+            status_badge = f' {badge("PENDING", T4, SURFACE, BORDER)}'
+
+        html = f'<div style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:.85rem 1.25rem;margin-bottom:4px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 6px rgba(0,0,0,.05);"><div style="font-size:.8rem;font-weight:700;color:{T3};min-width:28px;text-align:center;">#{rank}</div><div style="flex:1;font-size:.9rem;font-weight:600;color:{T1};">{name}</div><div style="font-size:.85rem;font-weight:800;color:{fg};margin-right:8px;">{int(tot*100)}%</div>{status_badge} {str(badge(slabel(tot),fg,bg2,bd2))}</div>'
         st.markdown(html, unsafe_allow_html=True)
         fc1,fc2,fc3=st.columns([1,2,1])
         with fc1:
