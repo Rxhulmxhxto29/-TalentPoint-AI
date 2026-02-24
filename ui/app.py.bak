@@ -204,9 +204,24 @@ if page == "Input":
         st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
         jt = st.text_input("Job title", placeholder="e.g. Senior Software Engineer")
         jx = st.text_area("Job description", placeholder="Required:\n- Python, FastAPI\n- 5+ years\n\nPreferred:\n- Docker, AWS", height=300)
-        if st.button("Save Job Description", use_container_width=True):
+        
+        with st.expander("⚖️ Scoring Weights Configuration", expanded=False):
+            st.markdown(f'<div style="font-size:.78rem;color:{T3};margin-bottom:1rem;">Adjust how the AI prioritizes candidates. Total must sum to 100%.</div>', unsafe_allow_html=True)
+            w_sk = st.slider("Skill Match Weight %", 10, 70, 40)
+            w_ex = st.slider("Experience Alignment Weight %", 10, 70, 30)
+            w_rf = 100 - (w_sk + w_ex)
+            
+            if not (10 <= w_rf <= 70):
+                st.error(f"Invalid Role Fit weight ({w_rf}%). Ensure Sk + Ex sum to between 30% and 90%.")
+                w_ready = False
+            else:
+                st.info(f"Role Fit (Context) weight will be {w_rf}%")
+                w_ready = True
+
+        if st.button("Save Job Description", use_container_width=True, disabled=not w_ready if 'w_ready' in locals() else False):
             if jt and jx and len(jx) >= 50:
-                d, e = api("post", "/jobs/", json={"title": jt, "description": jx})
+                weights = {"skill_match": w_sk/100, "experience_alignment": w_ex/100, "role_relevance": w_rf/100}
+                d, e = api("post", "/jobs/", json={"title": jt, "description": jx, "weights": weights})
                 if d:
                     req = d.get("required_skills", [])
                     pref = d.get("preferred_skills", [])
@@ -271,7 +286,35 @@ elif page == "Results":
     with m1: stat_box(len(cands), "Candidates Scored")
     with m2: stat_box(f"{int(top*100)}%", "Highest Score", GREEN)
     with m3: stat_box(strong, "Strong Matches", BLUE)
-    with m4: stat_box(f"{int(weights.get('skill_match',.4)*100)}%", "Skill Weight")
+    with m4: stat_box(f"{int(weights.get('experience_alignment',0.3)*100)}%", "Experience Weight", AMBER)
+
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+    
+    with st.expander("📝 Scoring Methodology & Transparency", expanded=False):
+        st.markdown(f"""
+        <div style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:1.25rem;">
+            <div style="font-size:.9rem;font-weight:700;color:{T1};margin-bottom:0.75rem;">How these candidates were ranked:</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin-bottom:1.25rem;">
+                <div style="padding:10px;background:{BG};border-radius:6px;text-align:center;">
+                    <div style="font-size:1.1rem;font-weight:800;color:{BLUE};">{int(weights.get('skill_match',0.4)*100)}%</div>
+                    <div style="font-size:.65rem;font-weight:700;color:{T3};text-transform:uppercase;">Skill Match</div>
+                </div>
+                <div style="padding:10px;background:{BG};border-radius:6px;text-align:center;">
+                    <div style="font-size:1.1rem;font-weight:800;color:{AMBER};">{int(weights.get('experience_alignment',0.3)*100)}%</div>
+                    <div style="font-size:.65rem;font-weight:700;color:{T3};text-transform:uppercase;">Experience</div>
+                </div>
+                <div style="padding:10px;background:{BG};border-radius:6px;text-align:center;">
+                    <div style="font-size:1.1rem;font-weight:800;color:{T2};">{int(weights.get('role_relevance',0.3)*100)}%</div>
+                    <div style="font-size:.65rem;font-weight:700;color:{T3};text-transform:uppercase;">Role Context</div>
+                </div>
+            </div>
+            <div style="font-size:.825rem;color:{T2};line-height:1.6;">
+                <b style="color:{AMBER};">Years of Experience (YoE) Focus:</b> This role places a significant weight on experience alignment. 
+                The AI analyzes the length and progression of the candidate's career relative to the job requirements. 
+                Candidates with high YoE scores have careers that closely match the seniority levels expected for this role.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 
@@ -493,56 +536,130 @@ elif page == "Fairness Audit":
 
 # ── PAGE 5: FEEDBACK ──────────────────────────────────────────────────────────
 elif page == "Feedback":
-    pg("Recruiter Feedback", "Record your decision on each candidate. Feedback is optional and calibrates future scoring.")
+    pg("Recruiter Feedback & AI Calibration", "Record decisions to coach the AI. The Learning Dashboard shows how the model shifts based on your preferences.")
     jobs, _ = api("get", "/jobs/")
     if not jobs or not jobs["jobs"]: st.info("Add a job and run scoring first."); st.stop()
     jopts = {f"{j['title']}  (ID: {j['id']})": j["id"] for j in jobs["jobs"]}  # type: ignore
     sel = st.selectbox("Job", list(jopts.keys()), label_visibility="collapsed")
-    res, err = api("get", f"/rank/{jopts[sel]}/results")
-    if err or not res: st.info("Run scoring first."); st.stop()
-    cands = res["ranked_candidates"]  # type: ignore
+    jid = jopts[sel]
 
-    # Fetch feedback stats for this specific job
-    stats, _ = api("get", f"/feedback/stats?job_id={jopts[sel]}")
-    if stats and res is not None:
-        job_title = str(res.get("job_title", ""))
-        sec(f"Feedback Summary — {job_title}")
+    # ── Feedback Summary ──────────────────────────────────────────────────────
+    stats, _ = api("get", "/feedback/stats")
+    if stats:
+        sec("Feedback Summary")
         tf=stats.get("total_feedback",0); ac=stats.get("accept_count",0); rj=stats.get("reject_count",0)
         fs1,fs2,fs3,fs4=st.columns(4)
         with fs1: stat_box(tf,"Total Submitted")
         with fs2: stat_box(ac,"Progressed",GREEN)
         with fs3: stat_box(rj,"Declined",RED)
         with fs4: stat_box(f"{int(ac/tf*100)}%" if tf else "—","Progress Rate")
-    
-    # Fetch all feedback for this job to map current decisions
-    fb_res, _ = api("get", f"/feedback/job/{jopts[sel]}")
-    fb_map = {}
-    if isinstance(fb_res, dict) and "feedback" in fb_res:
-        for f in fb_res["feedback"]:
-            if f["ranking_id"] not in fb_map:
-                fb_map[f["ranking_id"]] = f["decision"]
 
+    # ── AI Learning Dashboard ──────────────────────────────────────────────────
+    sec("AI Learning Dashboard")
+    cal, _ = api("get", f"/feedback/calibration/{jid}")
+    
+    if cal and cal.get("history"):
+        history = cal["history"]
+        # If only one entry (init), we show it as a baseline but maybe don't need a full line chart yet
+        if len(history) == 1:
+            st.info("AI is using its initial weights. Provide more feedback to see calibration trends develop.")
+            w = history[0]["weights"]
+            c1, c2, c3 = st.columns(3)
+            with c1: stat_box(f"{int(w.get('skill_match',0)*100)}%", "Skill Weight", BLUE)
+            with c2: stat_box(f"{int(w.get('experience_alignment',0)*100)}%", "Exp Weight", AMBER)
+            with c3: stat_box(f"{int(w.get('role_relevance',0)*100)}%", "Role Weight", GREEN)
+        else:
+            c1, c2 = st.columns([1.8, 1], gap="large")
+            with c1:
+                st.markdown(f'<div style="font-size:.75rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem;">Model Weight Evolution</div>', unsafe_allow_html=True)
+                fig = go.Figure()
+                colors = {"skill_match": BLUE, "experience_alignment": AMBER, "role_relevance": GREEN}
+                
+                for factor in ["skill_match", "experience_alignment", "role_relevance"]:
+                    fig.add_trace(go.Scatter(
+                        x=[h["timestamp"] for h in history],
+                        y=[h["weights"].get(factor, 0) for h in history],
+                        name=factor.replace("_"," ").title(),
+                        line={"width": 3, "color": colors[factor], "shape": "spline"},
+                        mode="lines+markers"
+                    ))
+                
+                fig.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                    height=260, margin={"t":10,"b":10,"l":10,"r":10},
+                    legend={"orientation":"h", "yanchor":"bottom", "y":1.02, "xanchor":"right", "x":1},
+                    xaxis={"gridcolor":BORDER, "showline":False},
+                    yaxis={"gridcolor":BORDER, "range":[0, 1], "tickformat":".0%"},
+                    font={"family":"Inter", "size":11}
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with c2:
+                st.markdown(f'<div style="font-size:.75rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem;">Optimization Log</div>', unsafe_allow_html=True)
+                for trend in cal.get("trend_summaries", [])[:4]:
+                    st.markdown(f"""
+                    <div style="background:{BG};border-left:3px solid {BLUE};padding:10px 12px;border-radius:4px;margin-bottom:8px;font-size:.8rem;color:{T2};line-height:1.5;">
+                        {trend}
+                    </div>
+                    """, unsafe_allow_html=True)
+    else:
+        info_card(f'<div style="text-align:center;padding:1.5rem;color:{T3};">Launch a job and provide feedback to unlock the Machine Learning calibration dashboard.</div>')
+
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    
+    # ── Feedback Queue ────────────────────────────────────────────────────────
     sec("Review Queue")
+    res, err = api("get", f"/rank/{jid}/results")
+    if err or not res: st.info("Run scoring first."); st.stop()
+    cands = res["ranked_candidates"]  # type: ignore
+
     for c in cands:
         rid=c.get("ranking_id")
         if not rid: continue
         name=c.get("candidate_name","—"); rank=c["rank"]; tot=c["total_score"]
         fg,bg2,bd2=scolor(tot)
-        html = f'<div style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:.85rem 1.25rem;margin-bottom:4px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 6px rgba(0,0,0,.05);"><div style="font-size:.8rem;font-weight:700;color:{T3};min-width:28px;text-align:center;">#{rank}</div><div style="flex:1;font-size:.9rem;font-weight:600;color:{T1};">{name}</div><div style="font-size:.85rem;font-weight:800;color:{fg};margin-right:8px;">{int(tot*100)}%</div>{str(badge(slabel(tot),fg,bg2,bd2))}</div>'
-        st.markdown(html, unsafe_allow_html=True)
-        fc1,fc2,fc3=st.columns([1,2,1])
+        
+        # Row Header
+        st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:.85rem 1.25rem;margin-bottom:4px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 6px rgba(0,0,0,.05);"><div style="font-size:.8rem;font-weight:700;color:{T3};min-width:28px;text-align:center;">#{rank}</div><div style="flex:1;font-size:.9rem;font-weight:600;color:{T1};">{name}</div><div style="font-size:.85rem;font-weight:800;color:{fg};margin-right:8px;">{int(tot*100)}%</div>{badge(slabel(tot),fg,bg2,bd2)}</div>', unsafe_allow_html=True)
+        
+        fc1,fc2,fc3=st.columns([1,1.5,1])
         with fc1:
-            prev = fb_map.get(rid)
-            idx = 0 if prev == "accept" else 1 if prev == "reject" else 0
-            dec=st.radio("",["Progress","Decline"],index=idx,key=f"d_{rid}",horizontal=True,label_visibility="collapsed")
+            dec=st.radio("Decision",["Progress","Decline"],key=f"d_{rid}",horizontal=True,label_visibility="collapsed")
         with fc2:
-            notes=st.text_input("",key=f"n_{rid}",placeholder="Optional notes…",label_visibility="collapsed")
+            notes=st.text_input("Notes",key=f"n_{rid}",placeholder="Internal recruiter notes…",label_visibility="collapsed")
         with fc3:
-            if st.button("Submit",key=f"s_{rid}",use_container_width=True):
-                resp,ferr=api("post","/feedback/",json={"ranking_id":rid,"decision":"accept" if dec=="Progress" else "reject","notes":notes})
+            send_mail = st.checkbox("Notify Candidate", key=f"notify_{rid}", value=True)
+
+        if send_mail:
+            # Generate Template based on decision
+            role_name = sel.split(" (ID:")[0]
+            if dec == "Progress":
+                tpl = f"Dear {name},\n\nWe are pleased to inform you that we would like to move forward with your application for the {role_name} position. Our team will contact you shortly to schedule the next steps.\n\nBest regards,\nRecruitment Team"
+            else:
+                tpl = f"Dear {name},\n\nThank you for your interest in the {role_name} role. After careful review, we have decided to proceed with other candidates at this time. We will keep your profile in our records for future opportunities.\n\nBest regards,\nRecruitment Team"
+            
+            mail_body = st.text_area("Email Content", value=tpl, height=150, key=f"mail_{rid}", label_visibility="collapsed")
+        else:
+            mail_body = None
+
+        if st.button("Submit Decision", key=f"s_{rid}", use_container_width=True):
+            with st.spinner("Recording..."):
+                payload = {
+                    "ranking_id": rid,
+                    "decision": "accept" if dec == "Progress" else "reject",
+                    "notes": notes,
+                    "send_notification": send_mail,
+                    "notification_body": mail_body
+                }
+                resp, ferr = api("post", "/feedback/", json=payload)
                 if resp:
-                    msg=f"{name}: {dec}d"
-                    if resp.get("weight_adjustment_triggered"): msg+=" — weights updated"
-                    st.success(msg)
-                else: st.error(ferr)
-        st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
+                    if send_mail:
+                        st.toast(f"✅ Notification sent to {name}", icon="📧")
+                    st.success(f"Feedback recorded for {name}")
+                    import time
+                    time.sleep(0.5)
+                    st.rerun()
+                else:
+                    st.error(ferr)
+        
+        st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)

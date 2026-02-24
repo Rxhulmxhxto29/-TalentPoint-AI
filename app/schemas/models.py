@@ -83,7 +83,6 @@ class JobCreate(BaseModel):
     """Request schema for creating a new job description."""
     title: str = Field(min_length=2, max_length=200)
     description: str = Field(min_length=50, description="Full job description text")
-    weights: Optional[ScoringWeights] = Field(default=None, description="Optional custom weights")
 
 
 class JobRecord(BaseModel):

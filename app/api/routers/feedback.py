@@ -3,6 +3,7 @@ app/api/routers/feedback.py — Recruiter feedback submission and statistics.
 """
 
 import sqlite3
+from typing import Optional, Any
 from fastapi import APIRouter, Depends, HTTPException, status  # type: ignore
 
 from app.api.dependencies import get_db  # type: ignore
@@ -71,9 +72,12 @@ def submit_feedback(
 
 
 @router.get("/stats")
-def feedback_statistics(db: sqlite3.Connection = Depends(get_db)):
-    """Global feedback statistics across all jobs."""
-    return get_feedback_stats(db)
+def feedback_statistics(
+    job_id: Optional[int] = None,
+    db: sqlite3.Connection = Depends(get_db),
+):
+    """Feedback statistics across all jobs or for a specific job."""
+    return get_feedback_stats(db, job_id=job_id)
 
 
 @router.get("/job/{job_id}")

@@ -1,0 +1,141 @@
+
+"""
+ui/design_system.py — Finalized Design System for Resume Screening UI v3.
+CRITICAL: DO NOT MODIFY THIS FILE WITHOUT EXPLICIT USER CONSENT.
+This file contains the hardcoded "Gold Standard" UI/UX tokens, colors, and global CSS.
+"""
+
+import streamlit as st  # type: ignore
+
+# ── Enterprise Tokens
+BG       = "#F0F2F7"
+SURFACE  = "#FFFFFF"
+BORDER   = "#E2E6F0"
+BLUE     = "#2F5BEA"
+BLUE_DK  = "#1E46C7"
+BLUE_LT  = "#EEF2FD"
+BLUE_BD  = "#CCDAFC"
+
+# High-Contrast Text Tokens (Essential for Recovery)
+T1       = "#0E1726" # Deepest Navy
+T2       = "#374151" # Charcoal
+T3       = "#6B7280" # Slate
+T4       = "#9CA3AF" # Silver
+
+def inject_custom_css():
+    css = f"""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* 1. Global Visibility Force */
+[data-testid="stAppViewContainer"], [data-testid="stMain"], [data-testid="stSidebar"] {{
+    background: {BG} !important;
+    font-family: 'Inter', sans-serif !important;
+}}
+
+/* Force all text to be visible by default */
+p, span, label, summary, h1, h2, h3 {{
+    color: {T2} !important;
+}}
+
+/* 2. Header Cleanup */
+header[data-testid="stHeader"] {{ visibility: hidden !important; height: 0 !important; }}
+
+/* 3. Sidebar Navigation (The Gold Standard restoration) */
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] {{
+    gap: 8px !important;
+}}
+
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label {{
+    background: {SURFACE} !important;
+    border: 1.5px solid {BORDER} !important;
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    margin-bottom: 2px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    width: 100% !important;
+    display: block !important;
+}}
+
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:hover {{
+    border-color: {BLUE} !important;
+    background: {BLUE_LT} !important;
+    transform: translateX(4px) !important;
+}}
+
+/* Active State */
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:has(input:checked) {{
+    background: {BLUE} !important;
+    border-color: {BLUE} !important;
+    box-shadow: 0 4px 12px rgba(47,91,234,0.2) !important;
+}}
+
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label:has(input:checked) p {{
+    color: {SURFACE} !important;
+    font-weight: 700 !important;
+}}
+
+/* Hide the radio dot container ONLY */
+[data-testid="stSidebar"] .stRadio div[role="radiogroup"] > label > div:first-child {{
+    display: none !important;
+}}
+
+/* Ensure sidebar text is dark and crisp */
+[data-testid="stSidebar"] .stRadio label p {{
+    color: {T1} !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    display: block !important;
+}}
+
+/* 4. Expander Recovery (Fixing the white-on-white text) */
+[data-testid="stExpander"] {{
+    background: {SURFACE} !important;
+    border: 1px solid {BORDER} !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03) !important;
+}}
+
+[data-testid="stExpander"] summary p, 
+[data-testid="stExpander"] summary svg {{
+    color: {T1} !important;
+    font-weight: 600 !important;
+}}
+
+/* 5. Metrics & Cards */
+[data-testid="stMetric"] {{
+    background: {SURFACE} !important;
+    border: 1px solid {BORDER} !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+}}
+
+[data-testid="stMetric"] [data-testid="stMetricValue"] {{
+    color: {BLUE} !important;
+    font-weight: 800 !important;
+}}
+
+/* 6. Inputs & Buttons */
+.stButton>button {{
+    background: {BLUE} !important; color: #fff !important;
+    border: none !important; border-radius: 8px !important;
+    font-weight: 700 !important; font-size: .875rem !important;
+    padding: .6rem 1.4rem !important;
+    box-shadow: 0 4px 12px rgba(47,91,234,0.25) !important;
+}}
+
+.stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] {{
+    background: {SURFACE} !important;
+    border: 1.5px solid {BORDER} !important;
+    color: {T1} !important;
+}}
+
+/* Scrollbars */
+::-webkit-scrollbar {{ width: 6px; }}
+::-webkit-scrollbar-thumb {{ background: #CBD5E1; border-radius: 10px; }}
+
+</style>
+    """
+    st.markdown(css, unsafe_allow_html=True)

@@ -16,13 +16,16 @@ print(f"Total resumes before cleanup: {len(rows)}")
 from collections import defaultdict
 groups: defaultdict[str, list[int]] = defaultdict(list)
 for r in rows:
-    groups[r["name"]].append(r["id"])
+    groups[str(r["name"])].append(int(r["id"]))
 
 to_delete: list[int] = []
 for name, ids in groups.items():
-    ids_sorted: list[int] = sorted(ids)
-    keep = ids_sorted[-1]  # keep newest id
-    dupes = ids_sorted[:-1]
+    ids.sort()
+    if not ids:
+        continue
+    
+    keep = ids.pop()  # newest id
+    dupes = ids       # remaining are duplicates
     if dupes:
         print(f"  '{name}': keeping id={keep}, deleting ids={dupes}")
         to_delete.extend(dupes)
