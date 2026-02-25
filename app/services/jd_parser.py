@@ -34,26 +34,24 @@ PREFERRED_SECTION_PATTERNS = re.compile(
 )
 
 EXPERIENCE_PATTERNS = [
-    # "5+ years of experience", "3-5 years", "minimum 2 years"
+    # 1. Years Range: "3-5 years", "3 to 5 years"
     re.compile(
-        r"(\d+)\+?\s*(?:to|-)\s*(\d+)\s*years?\s+(?:of\s+)?(?:professional\s+)?experience",
+        r"(\d+(?:\.\d+)?)\s*(?:to|-|–|—)\s*(\d+(?:\.\d+)?)\s*(?:years?|yrs?)(?:.*experience)?",
         re.IGNORECASE,
     ),
+    # 2. Years Single: "5+ years", "minimum 3 years", "3 years experience"
     re.compile(
-        r"(?:minimum\s+|at\s+least\s+)?(\d+)\+?\s*years?\s+(?:of\s+)?(?:professional\s+)?experience",
+        r"(?:minimum|at\s+least|above|more\s+than)?\s*(\d+(?:\.\d+)?)\+?\s*(?:years?|yrs?)(?:.*experience)?",
         re.IGNORECASE,
     ),
+    # 3. Months Range: "6-12 months", "3 to 6 months"
     re.compile(
-        r"(\d+)\+?\s*years?\s+(?:of\s+)?(?:work(?:ing)?\s+)?experience",
+        r"(\d+(?:\.\d+)?)\s*(?:to|-|–|—)\s*(\d+(?:\.\d+)?)\s*(?:months?|mos?)(?:.*experience)?",
         re.IGNORECASE,
     ),
-    # New: "6 months experience", "3-6 months"
+    # 4. Months Single: "6+ months", "minimum 3 months", "3 months experience"
     re.compile(
-        r"(\d+)\+?\s*(?:to|-)\s*(\d+)\s*months?\s+(?:of\s+)?(?:professional\s+)?experience",
-        re.IGNORECASE,
-    ),
-    re.compile(
-        r"(?:minimum\s+|at\s+least\s+)?(\d+)\+?\s*months?\s+(?:of\s+)?(?:professional\s+)?experience",
+        r"(?:minimum|at\s+least|above|more\s+than)?\s*(\d+(?:\.\d+)?)\+?\s*(?:months?|mos?)(?:.*experience)?",
         re.IGNORECASE,
     ),
 ]
@@ -69,15 +67,15 @@ def _extract_experience_requirements(text: str) -> tuple[float, Optional[float]]
         if matches:
             first = matches[0]
             if isinstance(first, tuple) and len(first) == 2:
-                # Range pattern: "3-5 years" or "6-12 months"
+                # Range pattern
                 v1, v2 = float(first[0]), float(first[1])
                 if "month" in pattern.pattern:
-                    return round(v1 / 12.0, 2), round(v2 / 12.0, 2)  # type: ignore
+                    return float(round(v1 / 12.0, 2)), float(round(v2 / 12.0, 2))  # type: ignore
                 return v1, v2
             elif isinstance(first, str):
                 v = float(first)
                 if "month" in pattern.pattern:
-                    return round(v / 12.0, 2), None  # type: ignore
+                    return float(round(v / 12.0, 2)), None  # type: ignore
                 return v, None
     return 0.0, None
 
