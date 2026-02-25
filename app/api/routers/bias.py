@@ -34,7 +34,7 @@ def get_bias_report(job_id: int, db: sqlite3.Connection = Depends(get_db)):
         """
         SELECT r.resume_id, r.rank, r.total_score,
                r.score_breakdown_json, r.matched_skills_json,
-               res.parsed_json
+               res.parsed_json, res.name as candidate_name
         FROM rankings r
         JOIN resumes res ON res.id = r.resume_id
         WHERE r.job_id = ?
@@ -60,6 +60,7 @@ def get_bias_report(job_id: int, db: sqlite3.Connection = Depends(get_db)):
             "score_breakdown": json.loads(row["score_breakdown_json"]),
             "matched_skills": json.loads(row["matched_skills_json"]),
             "candidate_years_experience": parsed.get("total_years_experience", 0.0),
+            "candidate_name": row["candidate_name"],
         })
 
     weights = json.loads(job_row["weights_json"])

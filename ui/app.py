@@ -422,7 +422,7 @@ elif page == "Explanations":
 # ── PAGE 4: FAIRNESS AUDIT ────────────────────────────────────────────────────
 elif page == "Fairness Audit":
     pg("Fairness Audit", "Statistical signals in scoring patterns. Review before finalising decisions.")
-    st.markdown(f'<div style="background:{AMBER_LT};border:1px solid {AMBER_BD};border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:.8rem;color:{AMBER};line-height:1.6;"><b>Note:</b> Statistical indicators only — not confirmation of bias. Apply professional judgement.</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="background:{AMBER_LT};border:1px solid {AMBER_BD};border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:.8rem;color:{AMBER};line-height:1.6;"><b>Note:</b> This page audits <b>Scoring Fairness</b> (how the AI ranks). To record your <b>Decisions</b> (Progress/Decline), use the <b>Feedback</b> page.</div>', unsafe_allow_html=True)
 
     jobs, _ = api("get", "/jobs/")
     if not jobs or not jobs["jobs"]: st.info("Add a job and run scoring first."); st.stop()
@@ -443,9 +443,9 @@ elif page == "Fairness Audit":
     skew=rep.get("experience_skew_score",0); kw=rep.get("keyword_overfit_score",0); ns=len(rep.get("bias_signals",[]))
     def bc(v,lo=.45,hi=.7): return RED if v>=hi else AMBER if v>=lo else GREEN
     fa1,fa2,fa3=st.columns(3)
-    with fa1: stat_box(f"{skew:.2f}","Experience Skew",bc(skew))
-    with fa2: stat_box(f"{kw:.2f}","Keyword Overfit",bc(kw,.5,.75))
-    with fa3: stat_box(str(ns),"Signals Flagged",bc(ns,1,2))
+    with fa1: st.metric("Experience Skew", f"{skew:.2f}", help="Spearman correlation (0 to 1). High values mean rankings match years of experience perfectly.")
+    with fa2: st.metric("Keyword Overfit", f"{kw:.2f}", help="Spearman correlation (0 to 1). High values mean rankings match keyword counts perfectly.")
+    with fa3: st.metric("Signals Flagged", str(ns), help="Number of potential bias markers detected for human review.")
 
     fd=rep.get("factor_dominance",[])
     if fd:
@@ -485,7 +485,13 @@ elif page == "Fairness Audit":
     else:
         for sg in sigs:
             sev=sg.get("severity","low"); fg2,bg2,bd3=scm.get(sev,scm["low"])
-            st.markdown(f'<div style="background:{SURFACE};border:1px solid {bd3};border-left:4px solid {fg2};border-radius:8px;padding:.9rem 1.1rem;margin-bottom:8px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;"><span style="background:{bg2};color:{fg2};font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;">{sev}</span><span style="color:{T1};font-weight:600;font-size:.875rem;">{sg.get("signal_type","").replace("_"," ").title()}</span></div><div style="font-size:.8125rem;color:{T2};line-height:1.65;">{sg.get("description","")}</div></div>', unsafe_allow_html=True)
+            affected = sg.get("affected_candidates", [])
+            affected_html = ""
+            if affected:
+                names = ", ".join([a["name"] for a in affected])
+                affected_html = f'<div style="margin-top:8px;font-size:.75rem;font-weight:700;color:{fg2};">Influential Candidates: <span style="font-weight:400;color:{T2};">{names}</span></div>'
+            
+            st.markdown(f'<div style="background:{SURFACE};border:1px solid {bd3};border-left:4px solid {fg2};border-radius:8px;padding:.9rem 1.1rem;margin-bottom:8px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;"><span style="background:{bg2};color:{fg2};font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;">{sev}</span><span style="color:{T1};font-weight:600;font-size:.875rem;">{sg.get("signal_type","").replace("_"," ").title()}</span></div><div style="font-size:.8125rem;color:{T2};line-height:1.65;">{sg.get("description","")}</div>{affected_html}</div>', unsafe_allow_html=True)
 
     sec("Ethical Disclaimer")
     st.markdown(f'<div style="background:{BG};border:1px solid {BORDER};border-radius:8px;padding:1rem 1.25rem;font-size:.8125rem;color:{T2};line-height:1.7;">{rep.get("ethical_disclaimer","")}</div>', unsafe_allow_html=True)

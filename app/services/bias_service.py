@@ -61,13 +61,13 @@ def _compute_spearman_correlation(x: list[float], y: list[float]) -> float:
 
 def _detect_experience_skew(
     ranked_candidates: list[dict[str, Any]],
-) -> tuple[float, list[int]]:
+) -> tuple[float, list[dict[str, Any]]]:
     """
     Detect if candidates with more YoE are systematically ranked higher.
     
     Returns:
         skew_score: 0=no skew, 1=perfect rank-YoE correlation
-        affected_candidate_ids: resumes showing strong effect
+        affected_candidates: resumes showing strong effect (id, name)
     """
     if len(ranked_candidates) < 3:
         return 0.0, []
@@ -88,7 +88,7 @@ def _detect_experience_skew(
         for c in top_candidates:
             yoe = float(c.get("candidate_years_experience", 0.0))
             if yoe > avg_yoe * 1.5:
-                affected.append(int(c["resume_id"]))
+                affected.append({"id": int(c["resume_id"]), "name": str(c.get("candidate_name", "Unknown"))})
 
     rounded_rho = float(int(float(rho) * 10000) / 10000.0)
     return float(rounded_rho), affected
@@ -156,7 +156,7 @@ def _identify_bias_signals(
     experience_skew: float,
     keyword_overfit: float,
     factor_dominance: list[dict],
-    skew_affected_ids: list[int],
+    skew_affected: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     """Aggregate bias signals based on computed metrics."""
     signals = []
@@ -171,7 +171,7 @@ def _identify_bias_signals(
                 f"and ranking. Candidates with fewer years may be unfairly penalized "
                 f"even if their skills are a better match for this level."
             ),
-            "affected_candidates": skew_affected_ids,
+            "affected_candidates": skew_affected,
         })
     elif experience_skew > 0.45:
         signals.append({
@@ -181,7 +181,7 @@ def _identify_bias_signals(
                 f"Moderate experience-rank correlation ({experience_skew:.2f}). "
                 f"Review whether experience requirements are truly necessary for this role."
             ),
-            "affected_candidates": skew_affected_ids,
+            "affected_candidates": skew_affected,
         })
 
     # Keyword overfit signal
