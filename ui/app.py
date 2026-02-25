@@ -38,11 +38,13 @@ def fetch_stats():
     jd_s, _ = api("get", "/jobs/")
     return (rd["total"] if rd else 0), (jd_s["total"] if jd_s else 0)
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=10)
 def check_health():
-    """Cached health check."""
+    """Cached health check. Returns (api_online, model_ready)."""
     health, _ = api("get", "/health")
-    return bool(health)
+    if not health:
+        return False, False
+    return True, health.get("model_ready", True)
 
 @st.cache_data(ttl=30)
 def fetch_jobs():
@@ -117,9 +119,11 @@ with st.sidebar:
 
     st.markdown(f'<div style="margin:1rem 0;border-top:1px solid {BORDER};"></div>', unsafe_allow_html=True)
 
-    is_online = check_health()
-    if is_online:
+    is_online, model_ready = check_health()
+    if is_online and model_ready:
         st.markdown(f'<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:{GREEN_LT};border:1px solid {GREEN_BD};border-radius:8px;"><div style="width:7px;height:7px;background:{GREEN};border-radius:50%;flex-shrink:0;"></div><span style="font-size:.8rem;font-weight:600;color:{GREEN};">API Connected</span></div>', unsafe_allow_html=True)
+    elif is_online and not model_ready:
+        st.markdown(f'<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:{AMBER_LT};border:1px solid {AMBER_BD};border-radius:8px;"><div style="width:7px;height:7px;background:{AMBER};border-radius:50%;flex-shrink:0;"></div><span style="font-size:.8rem;font-weight:600;color:{AMBER};">Model Loading…</span></div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:{RED_LT};border:1px solid {RED_BD};border-radius:8px;"><div style="width:7px;height:7px;background:{RED};border-radius:50%;flex-shrink:0;"></div><span style="font-size:.8rem;font-weight:600;color:{RED};">API Offline</span></div>', unsafe_allow_html=True)
 
@@ -274,10 +278,14 @@ elif page == "Results":
     with c2: sprio = st.toggle("Skills Priority", help="Dampen experience penalties to prioritize candidate potential and skills.")
     with c3:
         if st.button("Run Scoring", use_container_width=True):
-            with st.spinner("Computing scores…"):
-                d, e = api("post", f"/rank/{job_id}?skills_priority={str(sprio).lower()}")
-            if e: st.error(e); st.stop()
-            st.session_state[f"rank_{job_id}"] = d
+            _, _model_ready = check_health()
+            if not _model_ready:
+                st.warning("⏳ AI model is still loading (~30s on cold start). Please wait and try again.")
+            else:
+                with st.spinner("Computing scores…"):
+                    d, e = api("post", f"/rank/{job_id}?skills_priority={str(sprio).lower()}")
+                if e: st.error(e); st.stop()
+                st.session_state[f"rank_{job_id}"] = d
 
     if f"rank_{job_id}" not in st.session_state:
         sv, _ = api("get", f"/rank/{job_id}/results")

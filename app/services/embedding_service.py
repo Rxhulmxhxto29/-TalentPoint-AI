@@ -90,6 +90,11 @@ class EmbeddingService:
         self._model = ST(self.model_name)
         logger.info("Embedding model loaded successfully")
 
+    @property
+    def is_ready(self) -> bool:
+        """True when the model and FAISS index are both loaded."""
+        return self._model is not None and self._index is not None
+
     def encode(self, texts: list[str], batch_size: int = 32) -> np.ndarray:
         """
         Encode a list of texts into dense embedding vectors.

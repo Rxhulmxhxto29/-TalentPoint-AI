@@ -140,8 +140,15 @@ app.include_router(bias.router,    prefix="/bias",    tags=["Bias Analysis"])
 
 @app.get("/health", tags=["System"])
 def health_check():
-    """Basic liveness check — returns 200 if API is running."""
-    return {"status": "ok", "service": "AI Resume Screening API", "version": "1.0.0"}
+    """Liveness + readiness check. Reports whether AI model is loaded."""
+    embedding_svc = get_embedding_service()
+    model_ready = embedding_svc.is_ready
+    return {
+        "status": "ok",
+        "service": "AI Resume Screening API",
+        "version": "1.0.0",
+        "model_ready": model_ready,
+    }
 
 
 @app.get("/", tags=["System"])
