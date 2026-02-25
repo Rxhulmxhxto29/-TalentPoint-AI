@@ -10,6 +10,8 @@ pinned: false
 # TalentPoint AI — Smart Resume Ranking 🛡️📊
 
 > **An enterprise-grade, explainable, and bias-aware Decision-Support System for modern recruitment.**
+
+🚀 **[Live Demo](https://rahul-mahato-talentpoint-ai.hf.space)** | 🛡️ **Hugging Face Space**
 >
 > 100% free and open-source · Fully Local NLP · No Cloud APIs · Mobile-Responsive UI
 
