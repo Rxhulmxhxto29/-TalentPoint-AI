@@ -468,10 +468,10 @@ elif page == "Explanations":
             with sk:
                 if mat:
                     chips = " ".join(skill_chip(s, GREEN, GREEN_LT, GREEN_BD) for s in mat)
-                    st.markdown(f'<div style="font-size: 0.7rem; font-weight: 700; color: {GREEN}; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">Technical Strengths</div><div style="line-height: 2.3;">{chips}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="font-size: 0.7rem; font-weight: 700; color: {GREEN}; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">Technical Strengths</div><div style="line-height: 2.3;">{chips}</div>', unsafe_allow_html=True)  # type: ignore
                 if mis:
                     chips = " ".join(skill_chip(s, RED, RED_LT, RED_BD) for s in mis)
-                    st.markdown(f'<div style="font-size: 0.7rem; font-weight: 700; color: {RED}; text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 0 8px;">Strategic Gaps</div><div style="line-height: 2.3;">{chips}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="font-size: 0.7rem; font-weight: 700; color: {RED}; text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 0 8px;">Strategic Gaps</div><div style="line-height: 2.3;">{chips}</div>', unsafe_allow_html=True)  # type: ignore
             
             # Model Rationale Card
             st.markdown(f"""
@@ -482,7 +482,7 @@ elif page == "Explanations":
             """, unsafe_allow_html=True)
             
             # Integrated Document Explorer
-            show_text = st.toggle("Document Explorer", key=f"etog_{c['resume_id']}_{rank}")
+            show_text = st.toggle("Document Explorer", key=f"etog_{c['resume_id']}_{rank}")  # type: ignore
             if show_text:
                 rd2, _ = api("get", f"/resumes/{c['resume_id']}")
                 if rd2:
