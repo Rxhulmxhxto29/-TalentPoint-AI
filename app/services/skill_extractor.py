@@ -158,10 +158,13 @@ class SkillExtractor:
         """
         Compute matched and missing skills between resume and job.
 
+        Uses coverage (recall) instead of Jaccard so that candidates with broad
+        skill sets are not penalised for having MORE skills than the JD specifies.
+
         Returns:
             matched_skills: skills present in resume AND job
             missing_skills: required job skills absent from resume
-            jaccard_score: |intersection| / |union| (0–1)
+            coverage_score: |matched| / |job_skills|  (0–1, 1.0 = all JD skills covered)
         """
         resume_set = set(s.lower() for s in resume_skills)
         job_set = set(s.lower() for s in job_skills)
@@ -169,12 +172,13 @@ class SkillExtractor:
         matched = [s for s in job_skills if s.lower() in resume_set]
         missing = [s for s in job_skills if s.lower() not in resume_set]
 
-        union_size = len(resume_set | job_set)
-        if union_size == 0:
-            return matched, missing, 0.0
+        if not job_set:
+            # No JD skills to match — fall back to checking if resume has skills at all
+            return matched, missing, 1.0 if resume_skills else 0.0
 
-        jaccard = len(resume_set & job_set) / union_size
-        return matched, missing, float(int(float(jaccard) * 10000) / 10000.0)
+        # Coverage = % of JD skills the resume covers
+        coverage = len([s for s in job_set if s in resume_set]) / len(job_set)
+        return matched, missing, float(int(coverage * 10000) / 10000)
 
 
 # ---------------------------------------------------------------------------
