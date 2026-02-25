@@ -14,6 +14,7 @@ Run with:
 import logging
 import sys
 from contextlib import asynccontextmanager
+import asyncio
 from pathlib import Path
 
 # Ensure project root is on sys.path when running from any directory
@@ -60,16 +61,22 @@ async def lifespan(app: FastAPI):
     embedding_svc.load_or_create_index()
     logger.info("Embedding model and FAISS index ready.")
 
-    # 3. Sample Data (automated indexing if empty)
-    logger.info("Checking for sample data...")
-    conn = get_connection(DATABASE_PATH)
-    try:
-        load_sample_data(conn)
-    finally:
-        conn.close()
+    # 3. Sample Data (Automated indexing in background to prevent health-check timeouts)
+    async def run_sample_loading():
+        await asyncio.sleep(5)  # Let the API start first
+        logger.info("Background: Checking for sample data...")
+        conn = get_connection(DATABASE_PATH)
+        try:
+            load_sample_data(conn)
+        except Exception as e:
+            logger.error(f"Background sample loading failed: {e}")
+        finally:
+            conn.close()
+
+    asyncio.create_task(run_sample_loading())
 
     logger.info(f"API ready at http://{API_HOST}:{API_PORT}")
-    logger.info("=== Startup complete ===")
+    logger.info("=== Startup complete (Background tasks pending) ===")
 
     yield  # App runs here
 
