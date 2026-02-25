@@ -455,7 +455,7 @@ elif page == "Explanations":
                     v = bdd.get(mk, tot if mk == "total" else 0)
                     p = int(v * 100)
                     cf, _, _ = scolor(v)
-                    st.markdown(f"""
+                    st.markdown(f"""  # type: ignore
                         <div style="margin-bottom: 14px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                 <span style="font-size: 0.78rem; color: {T2}; font-weight: 500;">{ml}</span>
@@ -474,7 +474,7 @@ elif page == "Explanations":
                     st.markdown(f'<div style="font-size: 0.7rem; font-weight: 700; color: {RED}; text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 0 8px;">Strategic Gaps</div><div style="line-height: 2.3;">{chips}</div>', unsafe_allow_html=True)  # type: ignore
             
             # Model Rationale Card
-            st.markdown(f"""
+            st.markdown(f"""  # type: ignore
                 <div style="background: {BG}; border: 1px solid {BORDER}; border-left: 4px solid {BLUE}; border-radius: 8px; padding: 1.25rem; margin: 24px 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
                     <div style="font-size: 0.65rem; font-weight: 800; color: {T3}; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px;">Model Rationale (Assistive)</div>
                     <div style="font-size: 0.85rem; color: {T1}; line-height: 1.75; font-family: 'Inter', sans-serif;">{expl}</div>
@@ -487,7 +487,7 @@ elif page == "Explanations":
                 rd2, _ = api("get", f"/resumes/{c['resume_id']}")
                 if rd2:
                     txt = rd2.get("raw_text", "")
-                    st.markdown(f"""
+                    st.markdown(f"""  # type: ignore
                         <div style="background:{SURFACE}; border: 1px solid {BORDER}; border-radius: 8px; padding: 1.25rem; margin-top: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid {BORDER}; padding-bottom: 8px;">
                                 <span style="font-size: 0.62rem; font-weight: 800; color: {T3}; text-transform: uppercase; letter-spacing: 0.1em;">Resume Source Transcript</span>
