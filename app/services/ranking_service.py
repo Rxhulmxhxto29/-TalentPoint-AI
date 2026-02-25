@@ -165,6 +165,7 @@ def rank_candidates(
     parsed_job: dict[str, Any],
     weights: dict[str, float],
     embedding_service,
+    skills_first: bool = False,
 ) -> list[dict[str, Any]]:
     """
     Main ranking function.
@@ -217,6 +218,18 @@ def rank_candidates(
                 skill_score, exp_score, relevance_score, weights
             )
 
+            # --- Talent Boost (Professional Heuristic) ---
+            # If skills_first is ON, we drastically dampen the YoE penalty.
+            # Otherwise, we use the "High Potential" heuristic (Skills > 85% + Relevance > 85%).
+            is_high_potential = bool(relevance_score > 0.85 and skill_score > 0.85)
+            
+            if skills_first and exp_score < 0.8:
+                boost = (1.0 - exp_score) * 0.6  # drastically dampen seniority bias
+                total = min(1.0, total + (boost * weights["experience_alignment"]))
+            elif is_high_potential and exp_score < 0.6:
+                boost = (1.0 - exp_score) * 0.4  # moderate boost for exceptional talent
+                total = min(1.0, total + (boost * weights["experience_alignment"]))
+
             scored_candidates.append({
                 "resume_id": resume_id,
                 "candidate_name": parsed.get("name", f"Candidate {resume_id}"),
@@ -230,6 +243,7 @@ def rank_candidates(
                 "matched_skills": matched,
                 "missing_skills": missing,
                 "candidate_years_experience": parsed.get("total_years_experience", 0.0),
+                "high_potential": bool(relevance_score > 0.85 and skill_score > 0.85 and exp_score < 0.6),
             })
 
         except Exception as e:

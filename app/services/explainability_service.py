@@ -148,12 +148,19 @@ def generate_explanation(
         missing_skills, exp_score, candidate_yoe, min_required_yoe
     )
 
+    # Professional Insight: Skill over Tenure
+    insight = ""
+    if relevance_score > 0.85 and skill_score > 0.85 and exp_score < 0.6:
+        insight = " **[High Potential: Strong skill signals outweigh raw tenure.]**"
+    elif exp_score < 0.3 and total_score > 0.6:
+        insight = " **[Note: Profile suggests likely seniority not explicitly captured in dates.]**"
+
     score_summary = (
         f"[Skill: {skill_score:.2f} | Experience: {exp_score:.2f} | "
         f"Role Fit: {relevance_score:.2f}]"
     )
 
-    explanation = preamble + strength + weakness + score_summary
+    explanation = preamble + strength + weakness + insight + score_summary
     explanation_str = str(explanation)
     # pyre-ignore[16]: Pyre fails to resolve str slice overload
     logger.debug(f"Generated explanation for rank={rank}: {explanation_str[0:80]}...")

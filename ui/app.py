@@ -242,13 +242,14 @@ elif page == "Results":
         st.info("No jobs found — add a job description first."); st.stop()
 
     jopts = {f"{j['title']}  (ID: {j['id']})": j["id"] for j in jobs["jobs"]}  # type: ignore
-    c1, c2 = st.columns([3,1])
+    c1, c2, c3 = st.columns([2,1.2,1])
     with c1: sel = st.selectbox("Job", list(jopts.keys()), label_visibility="collapsed")
     job_id = jopts[sel]
-    with c2:
+    with c2: sprio = st.toggle("Skills Priority", help="Dampen experience penalties to prioritize candidate potential and skills.")
+    with c3:
         if st.button("Run Scoring", use_container_width=True):
             with st.spinner("Computing scores…"):
-                d, e = api("post", f"/rank/{job_id}")
+                d, e = api("post", f"/rank/{job_id}?skills_priority={str(sprio).lower()}")
             if e: st.error(e); st.stop()
             st.session_state[f"rank_{job_id}"] = d
 
@@ -397,9 +398,10 @@ elif page == "Explanations":
 
     for c in cands:
         rank=c["rank"]; name=c.get("candidate_name","—"); tot=c["total_score"]
+        hp_badge = " ⭐ " if c.get("high_potential") else ""
         bdd=c.get("score_breakdown",{}); mat=c.get("matched_skills",[]); mis=c.get("missing_skills",[])
         expl=c.get("explanation",""); fg,bg2,bd2=scolor(tot)
-        with st.expander(f"#{rank}  {name}  —  {int(tot*100)}%  ({slabel(tot)})"):
+        with st.expander(f"#{rank}  {name} {hp_badge} —  {int(tot*100)}%  ({slabel(tot)})"):
             sc, sk = st.columns([1,1.3], gap="large")
             with sc:
                 st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Score Breakdown</div>', unsafe_allow_html=True)
@@ -495,6 +497,22 @@ elif page == "Fairness Audit":
 
     sec("Ethical Disclaimer")
     st.markdown(f'<div style="background:{BG};border:1px solid {BORDER};border-radius:8px;padding:1rem 1.25rem;font-size:.8125rem;color:{T2};line-height:1.7;">{rep.get("ethical_disclaimer","")}</div>', unsafe_allow_html=True)
+
+    with st.container():
+        st.markdown(f"""
+        <div style="margin-top:2rem;padding:1.5rem;background:{BLUE_LT};border:1px solid {BLUE_BD};border-radius:12px;">
+          <div style="font-size:1rem;font-weight:700;color:{BLUE};margin-bottom:.5rem;">🛡️ Candidate Advocacy & Professionalism</div>
+          <p style="font-size:.825rem;color:{T2};line-height:1.6;">
+            <b>The "YoE Blind Spot":</b> Candidates often forget to explicitly state their total years of experience, or use varied date formats. 
+            If a top candidate is ranked lower than expected, check if they have a <b>Skill Match</b> > 0.80. This usually indicates a 
+            strong profile despite detected tenure gaps.
+          </p>
+          <p style="font-size:.825rem;color:{T2};line-height:1.6;margin-top:.5rem;">
+            <b>Talent Boost:</b> The system automatically applies a 40% penalty-dampening boost (⭐) to candidates who show exceptional 
+            role relevance and skills, even if their experience count is low. This ensures we don't miss "Fast Track" talent.
+          </p>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 # ── PAGE 5: FEEDBACK ──────────────────────────────────────────────────────────

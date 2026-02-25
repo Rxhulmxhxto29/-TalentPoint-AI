@@ -65,7 +65,7 @@ def _save_rankings(
 
 
 @router.post("/{job_id}", status_code=status.HTTP_200_OK)
-def run_ranking(job_id: int, db: sqlite3.Connection = Depends(get_db)):
+def run_ranking(job_id: int, skills_priority: bool = False, db: sqlite3.Connection = Depends(get_db)):
     """
     Rank all resumes against the specified job.
 
@@ -96,6 +96,7 @@ def run_ranking(job_id: int, db: sqlite3.Connection = Depends(get_db)):
         parsed_job=parsed_job,
         weights=weights,
         embedding_service=embedding_svc,
+        skills_first=skills_priority,
     )
 
     # Generate explanations
