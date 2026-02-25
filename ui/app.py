@@ -176,9 +176,20 @@ if page == "Input":
                     st.markdown(f'<div style="font-size:.8rem;color:{T3};margin-bottom:10px;"><b style="color:{T2};">File:</b> {r["file_name"]}<br><b style="color:{T2};">Added:</b> {r["created_at"][:16].replace("T"," ")}</div>', unsafe_allow_html=True)
                     b1, b2 = st.columns(2)
                     with b1:
-                        if st.button("View Text", key=f"v_{r['id']}", use_container_width=True):  # type: ignore
-                            det, _ = api("get", f"/resumes/{r['id']}")  # type: ignore
-                            if det: st.markdown(f'<pre style="background:{BG};border:1px solid {BORDER};border-radius:8px;padding:12px;font-size:.78rem;color:{T2};max-height:220px;overflow-y:auto;white-space:pre-wrap;margin-top:8px;">{det.get("raw_text","")}</pre>', unsafe_allow_html=True)
+                        show_text = st.toggle("View Text", key=f"vtog_{r['id']}")
+                        if show_text:
+                            det, _ = api("get", f"/resumes/{r['id']}")
+                            if det:
+                                txt = det.get("raw_text", "")
+                                st.markdown(f"""
+                                    <div style="background:{BG}; border: 1px solid {BORDER}; border-radius: 8px; padding: 1.25rem; margin-top: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid {BORDER}; padding-bottom: 8px;">
+                                            <span style="font-size: 0.65rem; font-weight: 800; color: {T3}; text-transform: uppercase; letter-spacing: 0.1em;">Document Explorer</span>
+                                            <span style="font-size: 0.65rem; color: {T4};">{len(txt)} chars</span>
+                                        </div>
+                                        <div style="font-size: 0.82rem; color: {T2}; line-height: 1.7; max-height: 350px; overflow-y: auto; white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif;">{txt}</div>
+                                    </div>
+                                """, unsafe_allow_html=True)
                     with b2:
                         if st.button("Download PDF", key=f"d_{r['id']}", use_container_width=True):  # type: ignore
                             import requests as _r  # type: ignore
