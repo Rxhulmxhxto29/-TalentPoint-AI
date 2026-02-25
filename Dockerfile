@@ -28,14 +28,13 @@ COPY . .
 # Create directory for persistent data
 RUN mkdir -p /app/data/embeddings /app/data/processed
 
-# Expose ports for both FastAPI and Streamlit
-EXPOSE 8000
-EXPOSE 8501
+# Expose port for Hugging Face Spaces
+EXPOSE 7860
 
 # Entry point script to run both services
 RUN echo '#!/bin/bash\n\
 uvicorn app.api.main:app --host 0.0.0.0 --port 8000 &\n\
-streamlit run ui/app.py --server.port 8501 --server.address 0.0.0.0\n\
+streamlit run ui/app.py --server.port 7860 --server.address 0.0.0.0\n\
 ' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 CMD ["/app/entrypoint.sh"]

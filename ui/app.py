@@ -60,6 +60,7 @@ def fetch_ranking_results(job_id):
 inject_custom_css()
 
 import os
+# Inside the Docker container, Streamlit talks to FastAPI on localhost:8000
 API_BASE = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 
 

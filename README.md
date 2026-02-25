@@ -1,3 +1,12 @@
+---
+title: TalentPoint AI
+emoji: 🛡️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # TalentPoint AI — Smart Resume Ranking 🛡️📊
 
 > **An enterprise-grade, explainable, and bias-aware Decision-Support System for modern recruitment.**
