@@ -177,19 +177,6 @@ if page == "Input":
                     b1, b2 = st.columns(2)
                     with b1:
                         show_text = st.toggle("View Text", key=f"vtog_{r['id']}")
-                        if show_text:
-                            det, _ = api("get", f"/resumes/{r['id']}")
-                            if det:
-                                txt = det.get("raw_text", "")
-                                st.markdown(f"""
-                                    <div style="background:{BG}; border: 1px solid {BORDER}; border-radius: 8px; padding: 1.25rem; margin-top: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid {BORDER}; padding-bottom: 8px;">
-                                            <span style="font-size: 0.65rem; font-weight: 800; color: {T3}; text-transform: uppercase; letter-spacing: 0.1em;">Document Explorer</span>
-                                            <span style="font-size: 0.65rem; color: {T4};">{len(txt)} chars</span>
-                                        </div>
-                                        <div style="font-size: 0.82rem; color: {T2}; line-height: 1.7; max-height: 350px; overflow-y: auto; white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif;">{txt}</div>
-                                    </div>
-                                """, unsafe_allow_html=True)
                     with b2:
                         if st.button("Download PDF", key=f"d_{r['id']}", use_container_width=True):  # type: ignore
                             import requests as _r  # type: ignore
@@ -198,6 +185,20 @@ if page == "Input":
                             if pr.status_code == 200:
                                 st.download_button("Save PDF", pr.content, f"{r['name'].replace(' ','_')}.pdf", "application/pdf", key=f"ds_{r['id']}", use_container_width=True)
                             else: st.error("PDF failed.")
+                    
+                    if show_text:
+                        det, _ = api("get", f"/resumes/{r['id']}")
+                        if det:
+                            txt = det.get("raw_text", "")
+                            st.markdown(f"""
+                                <div style="background:{BG}; border: 1px solid {BORDER}; border-radius: 8px; padding: 1.25rem; margin-top: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid {BORDER}; padding-bottom: 8px;">
+                                        <span style="font-size: 0.65rem; font-weight: 800; color: {T3}; text-transform: uppercase; letter-spacing: 0.1em;">Document Explorer</span>
+                                        <span style="font-size: 0.65rem; color: {T4};">{len(txt)} chars</span>
+                                    </div>
+                                    <div style="font-size: 0.82rem; color: {T2}; line-height: 1.7; max-height: 350px; overflow-y: auto; white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif;">{txt}</div>
+                                </div>
+                            """, unsafe_allow_html=True)
                     
                     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
                     if st.button("Delete Resume", key=f"del_r_{r['id']}", use_container_width=True):
