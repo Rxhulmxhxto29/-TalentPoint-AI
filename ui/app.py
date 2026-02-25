@@ -7,6 +7,8 @@ import streamlit as st  # type: ignore
 import plotly.graph_objects as go  # type: ignore
 import requests  # type: ignore
 
+st.set_page_config(page_title="TalentPoint AI", page_icon="🎯", layout="wide")
+
 # Import locked Design System
 try:
     from design_system import (  # type: ignore
@@ -27,9 +29,9 @@ def scolor(s):
     return RED, RED_LT, RED_BD
 
 def slabel(s):
-    if s >= .70: return "Strong"
-    if s >= .45: return "Moderate"
-    return "Weak"
+    if s >= .70: return "⭐⭐⭐⭐⭐"
+    if s >= .45: return "⭐⭐⭐"
+    return "⭐"
 
 @st.cache_data(ttl=10)
 def fetch_stats():
@@ -113,7 +115,7 @@ def info_card(content):
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown(f'<div style="padding:0.5rem 1rem 1rem;border-bottom:1px solid {BORDER};margin-bottom:.75rem;"><div style="font-size:1.0625rem;font-weight:800;color:{T1};letter-spacing:-.02em;">Resume Screening</div><div style="font-size:.72rem;color:{T4};margin-top:3px;font-weight:500;">AI-Assisted Candidate Review</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="padding:0.5rem 1rem 1rem;border-bottom:1px solid {BORDER};margin-bottom:.75rem;"><div style="font-size:1.0625rem;font-weight:800;color:{T1};letter-spacing:-.02em;">TalentPoint AI</div><div style="font-size:.72rem;color:{T4};margin-top:3px;font-weight:500;">v3.1.2 · Optimized Model</div></div>', unsafe_allow_html=True)
 
     page = st.radio("nav", ["Input","Results","Explanations","Fairness Audit","Feedback"], label_visibility="collapsed")
 

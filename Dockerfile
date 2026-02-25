@@ -31,15 +31,7 @@ RUN mkdir -p /app/data/embeddings /app/data/processed
 # Expose port for Hugging Face Spaces
 EXPOSE 7860
 
-# Write entrypoint script using printf to avoid echo escape issues
-RUN printf '#!/bin/bash\n\
-uvicorn app.api.main:app --host 0.0.0.0 --port 8000 &\n\
-streamlit run ui/app.py \\\n\
-    --server.port 7860 \\\n\
-    --server.address 0.0.0.0 \\\n\
-    --server.enableXsrfProtection=false \\\n\
-    --server.enableCORS=false \\\n\
-    --server.maxUploadSize=200\n\
-' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+# Use dedicated entrypoint script
+RUN chmod +x entrypoint.sh
 
-CMD ["/app/entrypoint.sh"]
+CMD ["./entrypoint.sh"]
