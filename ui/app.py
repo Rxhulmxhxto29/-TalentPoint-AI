@@ -429,29 +429,73 @@ elif page == "Explanations":
     cands = res["ranked_candidates"]  # type: ignore
     sec(f"{len(cands)} candidates")
 
-    for c in cands:
-        rank=c["rank"]; name=c.get("candidate_name","—"); tot=c["total_score"]
+    for i, c in enumerate(cands):
+        rank=c["rank"]
+        name=c.get("candidate_name","—")
+        tot=c["total_score"]
         hp_badge = " ⭐ " if c.get("high_potential") else ""
-        bdd=c.get("score_breakdown",{}); mat=c.get("matched_skills",[]); mis=c.get("missing_skills",[])
-        expl=c.get("explanation",""); fg,bg2,bd2=scolor(tot)
+        bdd=c.get("score_breakdown",{})
+        mat=c.get("matched_skills",[])
+        mis=c.get("missing_skills",[])
+        expl=c.get("explanation","")
+        fg,bg2,bd2=scolor(tot)
+        
         with st.expander(f"#{rank}  {name} {hp_badge} —  {int(tot*100)}%  ({slabel(tot)})"):
-            sc, sk = st.columns([1,1.3], gap="large")
+            # Header Info
+            st.markdown(f"""
+                <div style="margin-bottom: 20px; border-bottom: 1px solid {BORDER}; padding-bottom: 15px;">
+                    <span style="font-size: 0.65rem; font-weight: 800; color:{T4}; text-transform: uppercase; letter-spacing: 0.1em;">Candidate Insight Report</span>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            sc, sk = st.columns([1, 1.3], gap="large")
             with sc:
-                st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Score Breakdown</div>', unsafe_allow_html=True)
-                for mk,ml in [("total","Overall"),("skill_match","Skill Match"),("experience_alignment","Experience"),("role_relevance","Role Fit")]:
-                    v=bdd.get(mk, tot if mk=="total" else 0); p=int(v*100); cf,_,_=scolor(v)
-                    st.markdown(f'<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:.78rem;color:{T3};">{ml}</span><span style="font-size:.78rem;font-weight:700;color:{cf};">{p}%</span></div>{pbar(p,cf)}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="font-size: 0.7rem; font-weight: 700; color: {T3}; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 15px;">Score Breakdown</div>', unsafe_allow_html=True)
+                for mk, ml in [("total", "Overall Alignment"), ("skill_match", "Technical Fit"), ("experience_alignment", "Experience Fit"), ("role_relevance", "Mission Fit")]:
+                    v = bdd.get(mk, tot if mk == "total" else 0)
+                    p = int(v * 100)
+                    cf, _, _ = scolor(v)
+                    st.markdown(f"""
+                        <div style="margin-bottom: 14px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-size: 0.78rem; color: {T2}; font-weight: 500;">{ml}</span>
+                                <span style="font-size: 0.82rem; font-weight: 800; color: {cf};">{p}%</span>
+                            </div>
+                            {pbar(p, cf)}
+                        </div>
+                    """, unsafe_allow_html=True)
+            
             with sk:
                 if mat:
-                    chips=" ".join(skill_chip(s,GREEN,GREEN_LT,GREEN_BD) for s in mat)
-                    st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{GREEN};text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Matched</div><div style="line-height:2.2;">{chips}</div>', unsafe_allow_html=True)
+                    chips = " ".join(skill_chip(s, GREEN, GREEN_LT, GREEN_BD) for s in mat)
+                    st.markdown(f'<div style="font-size: 0.7rem; font-weight: 700; color: {GREEN}; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">Technical Strengths</div><div style="line-height: 2.3;">{chips}</div>', unsafe_allow_html=True)
                 if mis:
-                    chips=" ".join(skill_chip(s,RED,RED_LT,RED_BD) for s in mis)
-                    st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{RED};text-transform:uppercase;letter-spacing:.07em;margin:10px 0 6px;">Gaps</div><div style="line-height:2.2;">{chips}</div>', unsafe_allow_html=True)
-            st.markdown(f'<div style="font-size:.7rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin:14px 0 6px;">Model Reasoning (Assistive)</div><div style="background:{BG};border:1px solid {BORDER};border-left:3px solid {BLUE};border-radius:4px;padding:10px 12px;font-size:.8125rem;color:{T2};line-height:1.75;">{expl}</div>', unsafe_allow_html=True)
-            if st.button("Load Resume Text", key=f"rt_{c['resume_id']}_{rank}"):  # type: ignore
-                rd2, _ = api("get", f"/resumes/{c['resume_id']}")  # type: ignore
-                if rd2: st.markdown(f'<pre style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:12px;font-size:.78rem;color:{T2};max-height:300px;overflow-y:auto;white-space:pre-wrap;">{rd2.get("raw_text","")}</pre>', unsafe_allow_html=True)
+                    chips = " ".join(skill_chip(s, RED, RED_LT, RED_BD) for s in mis)
+                    st.markdown(f'<div style="font-size: 0.7rem; font-weight: 700; color: {RED}; text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 0 8px;">Strategic Gaps</div><div style="line-height: 2.3;">{chips}</div>', unsafe_allow_html=True)
+            
+            # Model Rationale Card
+            st.markdown(f"""
+                <div style="background: {BG}; border: 1px solid {BORDER}; border-left: 4px solid {BLUE}; border-radius: 8px; padding: 1.25rem; margin: 24px 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="font-size: 0.65rem; font-weight: 800; color: {T3}; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px;">Model Rationale (Assistive)</div>
+                    <div style="font-size: 0.85rem; color: {T1}; line-height: 1.75; font-family: 'Inter', sans-serif;">{expl}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # Integrated Document Explorer
+            show_text = st.toggle("Document Explorer", key=f"etog_{c['resume_id']}_{rank}")
+            if show_text:
+                rd2, _ = api("get", f"/resumes/{c['resume_id']}")
+                if rd2:
+                    txt = rd2.get("raw_text", "")
+                    st.markdown(f"""
+                        <div style="background:{SURFACE}; border: 1px solid {BORDER}; border-radius: 8px; padding: 1.25rem; margin-top: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid {BORDER}; padding-bottom: 8px;">
+                                <span style="font-size: 0.62rem; font-weight: 800; color: {T3}; text-transform: uppercase; letter-spacing: 0.1em;">Resume Source Transcript</span>
+                                <span style="font-size: 0.62rem; color: {T4};">{len(txt)} chars</span>
+                            </div>
+                            <div style="font-size: 0.8rem; color: {T2}; line-height: 1.7; max-height: 350px; overflow-y: auto; white-space: pre-wrap; font-family: 'Inter', system-ui, sans-serif;">{txt}</div>
+                        </div>
+                    """, unsafe_allow_html=True)
 
 
 # ── PAGE 4: FAIRNESS AUDIT ────────────────────────────────────────────────────
