@@ -93,13 +93,19 @@ def stat_box(val, lbl, c=BLUE):
     st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-top:3px solid {c};border-radius:8px;padding:.9rem 1.1rem;text-align:center;box-shadow:0 1px 8px rgba(0,0,0,.06);"><div style="font-size:1.6rem;font-weight:800;color:{c};line-height:1;">{val}</div><div style="font-size:.68rem;font-weight:600;color:{T3};text-transform:uppercase;letter-spacing:.08em;margin-top:5px;">{lbl}</div></div>', unsafe_allow_html=True)
 
 def pbar(pct, col):
-    return f'<div style="background:#E4E8F2;border-radius:4px;height:5px;overflow:hidden;margin-top:4px;"><div style="background:{col};width:{pct}%;height:5px;border-radius:4px;"></div></div>'
+    """Refined, lean progress bar for high-density ranking tables."""
+    return f'''
+    <div style="background:{BORDER}; border-radius: 99px; height: 4px; overflow: hidden; margin-top: 6px; width: 100%; border: 0.5px solid {BORDER};">
+        <div style="background: {col}; width: {pct}%; height: 100%; border-radius: 99px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+    </div>
+    '''
 
 def skill_chip(s, fg, bg, bd):
     return f'<span style="background:{bg};color:{fg};border:1px solid {bd};font-size:.72rem;font-weight:500;padding:2px 9px;border-radius:20px;display:inline-block;margin:2px;">{s}</span>'
 
 def badge(lbl, fg, bg, bd):
-    return f'<span style="background:{bg};color:{fg};border:1px solid {bd};font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;">{lbl}</span>'
+    """Modern status badge with soft tones and precise typography."""
+    return f'<span style="background:{bg}; color:{fg}; border:1px solid {bd}; font-size:0.65rem; font-weight:700; padding:4px 12px; border-radius:100px; text-transform:uppercase; letter-spacing:0.04em; box-shadow: 0 1px 2px rgba(0,0,0,0.04); white-space:nowrap;">{lbl}</span>'
 
 def info_card(content):
     st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-radius:8px;padding:1.25rem 1.5rem;box-shadow:0 1px 8px rgba(0,0,0,.06);">{content}</div>', unsafe_allow_html=True)
@@ -296,10 +302,16 @@ elif page == "Results":
 
     sec(f"Ranking — {res.get('job_title','')}")
 
-    # Table header
+    # Table header - High density, professional metadata row
     h0,h1,h2,h3,h4,h5,h6 = st.columns([.5, 2.5, .8, .8, .8, .8, .9])
-    for col, txt in zip([h0,h1,h2,h3,h4,h5,h6], ["#","Candidate","Overall","Skill","Exp.","Role Fit","Status"]):
-        col.markdown(f'<div style="font-size:.68rem;font-weight:700;color:{T3};text-transform:uppercase;letter-spacing:.08em;padding-bottom:6px;border-bottom:2px solid {BORDER};">{txt}</div>', unsafe_allow_html=True)
+    header_style = f"font-size:0.68rem; font-weight:800; color:{T4}; text-transform:uppercase; letter-spacing:0.12em; padding-bottom:12px; border-bottom:1px solid {BORDER};"
+    h0.markdown(f'<div style="{header_style}">#</div>', unsafe_allow_html=True)
+    h1.markdown(f'<div style="{header_style}">Candidate</div>', unsafe_allow_html=True)
+    h2.markdown(f'<div style="{header_style}">Overall</div>', unsafe_allow_html=True)
+    h3.markdown(f'<div style="{header_style}">Skillset</div>', unsafe_allow_html=True)
+    h4.markdown(f'<div style="{header_style}">Exp.</div>', unsafe_allow_html=True)
+    h5.markdown(f'<div style="{header_style}">Role Fit</div>', unsafe_allow_html=True)
+    h6.markdown(f'<div style="{header_style}">Status</div>', unsafe_allow_html=True)
 
     for i, c in enumerate(cands):
         rank  = c["rank"]
@@ -312,20 +324,37 @@ elif page == "Results":
         pct   = int(tot*100)
         fg,bg2,bd2 = scolor(tot)
         lbl   = slabel(tot)
-        is_picked = (picked == name)
-        row_bg = BLUE_LT if is_picked else (SURFACE if i%2==0 else "#F8F9FC")
-
-        rs = f"background:{row_bg};padding:10px 4px;border-bottom:1px solid {BORDER};"
-        r0,r1,r2,r3,r4,r5,r6 = st.columns([.5, 2.5, .8, .8, .8, .8, .9])
-        r0.markdown(f'<div style="{rs}font-size:.85rem;font-weight:700;color:{T3};">#{rank}</div>', unsafe_allow_html=True)
         
-        boost_star = f'<span title="Talent Boost Applied" style="color:{AMBER};cursor:help;margin-left:4px;">⭐</span>' if bd.get("boost_applied") else ""
-        r1.markdown(f'<div style="{rs}font-size:.875rem;font-weight:600;color:{T1};">{name}{boost_star}</div>', unsafe_allow_html=True)
-        r2.markdown(f'<div style="{rs}font-size:.9rem;font-weight:800;color:{fg};">{pct}%</div>', unsafe_allow_html=True)
-        r3.markdown(f'<div style="{rs}font-size:.78rem;color:{T2};">{int(sk*100)}%{pbar(int(sk*100),fg)}</div>', unsafe_allow_html=True)
-        r4.markdown(f'<div style="{rs}font-size:.78rem;color:{T2};">{int(ex*100)}%{pbar(int(ex*100),fg)}</div>', unsafe_allow_html=True)
-        r5.markdown(f'<div style="{rs}font-size:.78rem;color:{T2};">{int(rf*100)}%{pbar(int(rf*100),fg)}</div>', unsafe_allow_html=True)
-        r6.markdown(f'<div style="{rs}">{badge(lbl,fg,bg2,bd2)}</div>', unsafe_allow_html=True)
+        is_picked = (picked == name)
+        # Professional row look: subtle hover effect via BORDER or slight surface tint
+        row_bg = BLUE_LT if is_picked else (SURFACE)
+        row_border = BLUE_BD if is_picked else BORDER
+        
+        rs = f"background:{row_bg}; padding:14px 4px; border-bottom:1px solid {BORDER};"
+        
+        r0,r1,r2,r3,r4,r5,r6 = st.columns([.5, 2.5, .8, .8, .8, .8, .9])
+        
+        # Rank
+        r0.markdown(f'<div style="{rs} font-size:0.85rem; font-weight:700; color:{T4};">#{rank}</div>', unsafe_allow_html=True)
+        
+        # Name + Boost tag
+        boost_tag = f'<span title="Talent Boost: High Potential" style="background:{AMBER_LT}; border:1px solid {AMBER_BD}; color:{AMBER}; font-size:0.6rem; padding:1px 6px; border-radius:4px; margin-left:8px; vertical-align:middle; cursor:help;">BOOST ⭐</span>' if bd.get("boost_applied") else ""
+        r1.markdown(f'<div style="{rs} font-size:0.93rem; font-weight:600; color:{T1};">{name}{boost_tag}</div>', unsafe_allow_html=True)
+        
+        # Score - Bold and professional
+        r2.markdown(f'<div style="{rs} font-size:1.05rem; font-weight:800; color:{fg}; line-height:1;">{pct}<small style="font-size:0.65rem; font-weight:600; vertical-align:top; margin-left:1px;">%</small></div>', unsafe_allow_html=True)
+        
+        # Metrics with refined progress bars
+        for col, val in zip([r3,r4,r5], [sk,ex,rf]):
+            col.markdown(f'''
+                <div style="{rs}">
+                    <div style="font-size:0.75rem; font-weight:600; color:{T2};">{int(val*100)}%</div>
+                    {pbar(int(val*100), fg)}
+                </div>
+            ''', unsafe_allow_html=True)
+            
+        # Status Badge
+        r6.markdown(f'<div style="{rs} padding-top:10px;">{badge(lbl,fg,bg2,bd2)}</div>', unsafe_allow_html=True)
 
     st.markdown(f'<div style="font-size:.72rem;color:{T4};margin-top:10px;">Generated: {res.get("generated_at","")[:19].replace("T"," ")} UTC</div>', unsafe_allow_html=True)
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
