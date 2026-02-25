@@ -149,8 +149,18 @@ if page == "Input":
                 prog = st.progress(0); status = st.empty()
                 for i, f in enumerate(uploaded):
                     status.caption(f"Processing {f.name}…")
+                    # Derive MIME from extension first — Streamlit's f.type is unreliable across browsers
+                    _ext_mime = {
+                        ".pdf": "application/pdf",
+                        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        ".doc": "application/msword",
+                        ".txt": "text/plain",
+                    }
+                    import pathlib as _pl
+                    _ext = _pl.Path(f.name).suffix.lower()
+                    _mime = _ext_mime.get(_ext) or f.type or "application/octet-stream"
                     d, e = api("post", "/resumes/upload",
-                        files={"file": (f.name, f.getvalue(), f.type or "application/octet-stream")})
+                        files={"file": (f.name, f.getvalue(), _mime)})
                     if d: ok = ok + 1   # type: ignore
                     else:
                         fail = fail + 1  # type: ignore
