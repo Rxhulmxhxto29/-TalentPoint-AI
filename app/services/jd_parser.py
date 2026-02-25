@@ -80,26 +80,74 @@ def _extract_experience_requirements(text: str) -> tuple[float, Optional[float]]
     return 0.0, None
 
 
+# Lines that read as experience-requirement sentences, not skill tokens
+_EXP_SENTENCE_RE = re.compile(
+    r"(\d+\+?\s*years?|experience\s+in|expertise\s+in|knowledge\s+of"
+    r"|understanding\s+of|familiarity\s+with|proficiency\s+in"
+    r"|strong\s+background|solid\s+understanding|strong\s+expertise)",
+    re.IGNORECASE,
+)
+
+# Common technology / tool names to pull from noisy bullet text
+_TECH_TOKEN_RE = re.compile(
+    r"\b(Python|Java(?:Script)?|TypeScript|Go|Rust|C\+\+|C#|Ruby|PHP|Kotlin|Swift"
+    r"|React(?:\.js)?|Angular|Vue(?:\.js)?|Next\.js|Node\.js|Express(?:\.js)?"
+    r"|Django|Flask|FastAPI|Spring(?:\s+Boot)?|Rails"
+    r"|PostgreSQL|MySQL|MongoDB|Redis|SQLite|DynamoDB|Cassandra|Elasticsearch"
+    r"|Docker|Kubernetes|AWS|GCP|Azure|Terraform|Ansible|Jenkins|GitHub\s*Actions"
+    r"|GraphQL|REST(?:\s+API)?|gRPC|Kafka|RabbitMQ|Spark|Hadoop|Airflow|dbt"
+    r"|TensorFlow|PyTorch|scikit-learn|pandas|NumPy|Tableau|Power\s*BI"
+    r"|Linux|Git|CI/CD|Microservices|SQL|NoSQL|HTML5?|CSS3?|Sass"
+    r"|JIRA|Confluence|Agile|Scrum|Figma|Photoshop|Kubernetes)\b",
+    re.IGNORECASE,
+)
+
+
 def _extract_skill_bullets(lines: list[str]) -> list[str]:
     """
-    Extract skills from bullet-pointed or numbered lists.
-    Returns cleaned list of skill strings.
+    Extract clean skill/technology names from bullet-pointed or numbered lists.
+    Filters experience-requirement sentences; extracts only technology tokens.
     """
-    skills = []
+    skills: list[str] = []
+    seen: set[str] = set()
+
+    def _add(token: str) -> None:
+        t = token.strip().strip(".,;:-").strip()
+        if t and len(t) > 1 and t.lower() not in seen:
+            seen.add(t.lower())
+            skills.append(t)
+
     for line in lines:
         line = line.strip()
-        # Remove bullet characters
+        # Remove bullet / numbering
         line = re.sub(r"^[\•\-\*\·\>\◦\▪]\s*", "", line)
-        # Remove numbering
         line = re.sub(r"^\d+[\.\)]\s*", "", line)
         if not line or len(line) < 2:
             continue
-        # If line contains comma-separated skills, split them
-        if "," in line and len(line) < 200:
-            parts = [p.strip() for p in line.split(",")]
-            skills.extend([p for p in parts if len(p) > 1])
+
+        # If the line is an experience sentence, pull only tech tokens from it
+        if _EXP_SENTENCE_RE.search(line) or len(line) > 70:
+            for m in _TECH_TOKEN_RE.finditer(line):
+                _add(m.group(0))
+        elif "," in line and len(line) < 200:
+            # Short comma list: "Python, Django, REST API"
+            for part in line.split(","):
+                # Still extract tokens in case each part has noise
+                tokens = list(_TECH_TOKEN_RE.finditer(part))
+                if tokens:
+                    for m in tokens:
+                        _add(m.group(0))
+                else:
+                    _add(part)
         else:
-            skills.append(line)
+            # Short clean line — try tech regex first, fallback to raw
+            tokens = list(_TECH_TOKEN_RE.finditer(line))
+            if tokens:
+                for m in tokens:
+                    _add(m.group(0))
+            else:
+                _add(line)
+
     return skills
 
 
