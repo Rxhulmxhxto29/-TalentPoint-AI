@@ -1,0 +1,9 @@
+[server]
+# Required for Hugging Face Spaces proxy compatibility
+# Without this, file uploads fail with AxiosError 403
+enableXsrfProtection = false
+enableCORS = false
+maxUploadSize = 200
+
+[browser]
+gatherUsageStats = false
