@@ -47,6 +47,15 @@ EXPERIENCE_PATTERNS = [
         r"(\d+)\+?\s*years?\s+(?:of\s+)?(?:work(?:ing)?\s+)?experience",
         re.IGNORECASE,
     ),
+    # New: "6 months experience", "3-6 months"
+    re.compile(
+        r"(\d+)\+?\s*(?:to|-)\s*(\d+)\s*months?\s+(?:of\s+)?(?:professional\s+)?experience",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:minimum\s+|at\s+least\s+)?(\d+)\+?\s*months?\s+(?:of\s+)?(?:professional\s+)?experience",
+        re.IGNORECASE,
+    ),
 ]
 
 
@@ -60,10 +69,16 @@ def _extract_experience_requirements(text: str) -> tuple[float, Optional[float]]
         if matches:
             first = matches[0]
             if isinstance(first, tuple) and len(first) == 2:
-                # Range pattern: "3-5 years"
-                return float(first[0]), float(first[1])
+                # Range pattern: "3-5 years" or "6-12 months"
+                v1, v2 = float(first[0]), float(first[1])
+                if "month" in pattern.pattern:
+                    return round(v1 / 12.0, 2), round(v2 / 12.0, 2)
+                return v1, v2
             elif isinstance(first, str):
-                return float(first), None
+                v = float(first)
+                if "month" in pattern.pattern:
+                    return round(v / 12.0, 2), None
+                return v, None
     return 0.0, None
 
 

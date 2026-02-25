@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent))
 
-from app.services.skill_extractor import get_skill_extractor
+from app.services.skill_extractor import get_skill_extractor  # type: ignore
 
 def test_non_tech_skills():
     extractor = get_skill_extractor()

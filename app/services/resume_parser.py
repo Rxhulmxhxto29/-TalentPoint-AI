@@ -62,6 +62,13 @@ YEARS_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# New: Pattern for extracting months of experience
+MONTHS_PATTERN = re.compile(
+    r"(\d+(?:\.\d+)?)\+?\s*(?:months?|mos?)(?:\s+of)?"
+    r"(?:\s+(?:professional\s+)?(?:work\s+)?experience)?",
+    re.IGNORECASE,
+)
+
 # Date range pattern for experience entries (e.g., "Jan 2020 – Mar 2023")
 DATE_RANGE_PATTERN = re.compile(
     r"((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}|"
@@ -166,18 +173,31 @@ def _compute_duration_years(start: str, end: str) -> float:
     """
     import datetime
 
-    def parse_year(s: str) -> Optional[int]:
-        match = re.search(r"\d{4}", s)
-        return int(match.group()) if match else None
+    def parse_date(s: str) -> tuple[int, int]:
+        # Try full month name
+        match_full = re.search(r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{4})", s, re.IGNORECASE)
+        if match_full:
+            months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+            month_idx = months.index(match_full.group(1).lower()[:3]) + 1
+            return int(match_full.group(2)), month_idx
+        
+        # Try year only
+        match_year = re.search(r"\d{4}", s)
+        if match_year:
+            return int(match_year.group()), 1
+            
+        return datetime.datetime.now().year, 1
 
-    current_year = datetime.datetime.now().year
-    start_year = parse_year(start) or current_year
+    current = datetime.datetime.now()
+    start_year, start_month = parse_date(start)
+    
     if re.search(r"present|current|now", end, re.IGNORECASE):
-        end_year = current_year
+        end_year, end_month = current.year, current.month
     else:
-        end_year = parse_year(end) or current_year
+        end_year, end_month = parse_date(end)
 
-    return max(0.0, float(end_year - start_year))
+    total_months = (end_year - start_year) * 12 + (end_month - start_month)
+    return max(0.0, float(round(total_months / 12.0, 2)))
 
 
 def _parse_experience_section(lines: list[str]) -> tuple[list[dict], float]:
@@ -226,8 +246,19 @@ def _parse_experience_section(lines: list[str]) -> tuple[list[dict], float]:
     if not entries:
         full_text = " ".join(lines)
         year_matches = YEARS_PATTERN.findall(full_text)
+        month_matches = MONTHS_PATTERN.findall(full_text)
+        
+        yoe = 0.0
         if year_matches:
-            total_years = max(float(y) for y in year_matches)
+            yoe = max(float(y) for y in year_matches)
+        
+        if month_matches:
+            # Add month-based experience (converted to fractional years) if year-based wasn't found or is smaller
+            # This handles cases like "6 months experience" vs "0.5 years"
+            mo_yoe = max(float(m) for m in month_matches) / 12.0
+            total_years = max(yoe, float(round(mo_yoe, 2)))
+        else:
+            total_years = yoe
 
     return entries, total_years
 
