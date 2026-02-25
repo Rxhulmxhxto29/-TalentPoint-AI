@@ -1,0 +1,11 @@
+Senior Python Developer
+
+We are looking for a Senior Python Developer to join our backend team. You will be responsible for architecting and implementing scalable microservices using FastAPI and managing complex data pipelines.
+
+REQUIREMENTS
+- 5+ years of experience in Python development.
+- Strong expertise in FastAPI, Django, or Flask.
+- Experience with PostgreSQL and Redis.
+- Knowledge of Docker and Kubernetes is preferred.
+- Solid understanding of system design and microservices architecture.
+- Experience with CI/CD and automated testing.
