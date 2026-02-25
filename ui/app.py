@@ -488,7 +488,7 @@ elif page == "Explanations":
                     f'</div>{pbar(int(val*100), scolor(val)[0])}</div>'
                 )
 
-            st.markdown(f"""  # type: ignore
+            st.markdown(f"""
                 <div style="background:{SURFACE}; border:1px solid {BORDER}; border-radius:12px; padding:1.5rem; margin:10px 0; box-shadow:0 10px 30px rgba(0,0,0,.04);">
                     <div class="insight-grid" style="display:grid; grid-template-columns: 1fr 1.2fr; gap:2.5rem;">
                         <div>
@@ -517,7 +517,7 @@ elif page == "Explanations":
                         .insight-grid {{ grid-template-columns: 1fr !important; gap: 1.5rem !important; }}
                     }}
                 </style>
-            """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)  # type: ignore
             
             # Integrated Document Explorer
             show_text = st.toggle("Document Explorer", key=f"etog_{c['resume_id']}_{rank}")  # type: ignore
