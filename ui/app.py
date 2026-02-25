@@ -318,7 +318,9 @@ elif page == "Results":
         rs = f"background:{row_bg};padding:10px 4px;border-bottom:1px solid {BORDER};"
         r0,r1,r2,r3,r4,r5,r6 = st.columns([.5, 2.5, .8, .8, .8, .8, .9])
         r0.markdown(f'<div style="{rs}font-size:.85rem;font-weight:700;color:{T3};">#{rank}</div>', unsafe_allow_html=True)
-        r1.markdown(f'<div style="{rs}font-size:.875rem;font-weight:600;color:{T1};">{name}</div>', unsafe_allow_html=True)
+        
+        boost_star = f'<span title="Talent Boost Applied" style="color:{AMBER};cursor:help;margin-left:4px;">⭐</span>' if bd.get("boost_applied") else ""
+        r1.markdown(f'<div style="{rs}font-size:.875rem;font-weight:600;color:{T1};">{name}{boost_star}</div>', unsafe_allow_html=True)
         r2.markdown(f'<div style="{rs}font-size:.9rem;font-weight:800;color:{fg};">{pct}%</div>', unsafe_allow_html=True)
         r3.markdown(f'<div style="{rs}font-size:.78rem;color:{T2};">{int(sk*100)}%{pbar(int(sk*100),fg)}</div>', unsafe_allow_html=True)
         r4.markdown(f'<div style="{rs}font-size:.78rem;color:{T2};">{int(ex*100)}%{pbar(int(ex*100),fg)}</div>', unsafe_allow_html=True)

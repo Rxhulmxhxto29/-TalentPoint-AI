@@ -222,28 +222,34 @@ def rank_candidates(
             # If skills_first is ON, we drastically dampen the YoE penalty.
             # Otherwise, we use the "High Potential" heuristic (Skills > 85% + Relevance > 85%).
             is_high_potential = bool(relevance_score > 0.85 and skill_score > 0.85)
+            boost_applied = False
             
             if skills_first and exp_score < 0.8:
                 boost = (1.0 - exp_score) * 0.6  # drastically dampen seniority bias
                 total = min(1.0, total + (boost * weights["experience_alignment"]))
+                boost_applied = True
             elif is_high_potential and exp_score < 0.6:
                 boost = (1.0 - exp_score) * 0.4  # moderate boost for exceptional talent
                 total = min(1.0, total + (boost * weights["experience_alignment"]))
+                boost_applied = True
+
+            score_breakdown = {
+                "skill_match": float(int(float(skill_score) * 10000) / 10000.0),
+                "experience_alignment": float(int(float(exp_score) * 10000) / 10000.0),
+                "role_relevance": float(int(float(relevance_score) * 10000) / 10000.0),
+                "total": float(total),
+                "boost_applied": boost_applied
+            }
 
             scored_candidates.append({
                 "resume_id": resume_id,
                 "candidate_name": parsed.get("name", f"Candidate {resume_id}"),
                 "total_score": total,
-                "score_breakdown": {
-                    "skill_match": float(int(float(skill_score) * 10000) / 10000.0),
-                    "experience_alignment": float(int(float(exp_score) * 10000) / 10000.0),
-                    "role_relevance": float(int(float(relevance_score) * 10000) / 10000.0),
-                    "total": float(total),
-                },
+                "score_breakdown": score_breakdown,
                 "matched_skills": matched,
                 "missing_skills": missing,
                 "candidate_years_experience": parsed.get("total_years_experience", 0.0),
-                "high_potential": bool(relevance_score > 0.85 and skill_score > 0.85 and exp_score < 0.6),
+                "high_potential": boost_applied,
             })
 
         except Exception as e:
