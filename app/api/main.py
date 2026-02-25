@@ -45,44 +45,56 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """
     Application lifespan handler.
-    All startup logic runs before yield; shutdown logic after yield.
+    Only lightweight DB init is synchronous — heavy work runs in background
+    so the /health endpoint responds immediately and HF Spaces sees API as online.
     """
     # --- STARTUP ---
     logger.info("=== AI Resume Screening System — Startup ===")
 
-    # 1. Database
+    # 1. Database (fast — must complete before serving requests)
     logger.info("Initializing database...")
     initialize_database(DATABASE_PATH)
+    logger.info("Database ready.")
 
-    # 2. Embedding model (loads ~80MB MiniLM model on first call)
-    logger.info("Loading Sentence-BERT embedding model (may take 10-30s first time)...")
-    embedding_svc = get_embedding_service()
-    embedding_svc.load_model()
-    embedding_svc.load_or_create_index()
-    logger.info("Embedding model and FAISS index ready.")
+    # 2. All heavy work in background so /health responds immediately
+    async def _background_init():
+        import asyncio as _asyncio
+        await _asyncio.sleep(1)  # allow uvicorn to bind port first
 
-    # 3. Sample Data (Automated indexing in background to prevent health-check timeouts)
-    async def run_sample_loading():
-        await asyncio.sleep(5)  # Let the API start first
+        logger.info("Background: Loading Sentence-BERT model (may take 10-30s)...")
+        try:
+            embedding_svc = get_embedding_service()
+            embedding_svc.load_model()
+            embedding_svc.load_or_create_index()
+            logger.info("Background: Embedding model and FAISS index ready.")
+        except Exception as e:
+            logger.error(f"Background: Embedding model load failed: {e}")
+
         logger.info("Background: Checking for sample data...")
         conn = get_connection(DATABASE_PATH)
         try:
             load_sample_data(conn)
+            logger.info("Background: Sample data ready.")
         except Exception as e:
-            logger.error(f"Background sample loading failed: {e}")
+            logger.error(f"Background: Sample loading failed: {e}")
         finally:
             conn.close()
 
-    asyncio.create_task(run_sample_loading())
+        logger.info("=== Background init complete ===")
 
-    logger.info(f"API ready at http://{API_HOST}:{API_PORT}")
-    logger.info("=== Startup complete (Background tasks pending) ===")
+    asyncio.create_task(_background_init())
 
-    yield  # App runs here
+    logger.info("API ready — heavy init running in background.")
+    logger.info(f"Serving at http://{API_HOST}:{API_PORT}")
+
+    yield  # App serves requests here
 
     # --- SHUTDOWN ---
     logger.info("Saving FAISS index to disk...")
-    embedding_svc.save_index()
+    try:
+        get_embedding_service().save_index()
+    except Exception as e:
+        logger.warning(f"FAISS save failed (non-fatal): {e}")
     logger.info("Shutdown complete.")
 
 
