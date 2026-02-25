@@ -171,6 +171,29 @@ hr{{border-color:{BORDER}!important;}}
 /* Animations */
 @keyframes fadeIn{{from{{opacity:0;}}to{{opacity:1;}}}}
 .fade{{animation:fadeIn .3s ease both;}}
+
+/* ── Mobile Responsiveness ─────────────────────────────────────────────── */
+.mobile-only {{ display: none !important; }}
+.desktop-only {{ display: block !important; }}
+
+@media (max-width: 768px) {{
+  [data-testid="stMain"] .block-container {{
+    padding: 1rem 1rem !important;
+  }}
+  
+  .mobile-only {{ display: block !important; }}
+  .desktop-only {{ display: none !important; }}
+  
+  /* Scale down headers */
+  h1 {{ font-size: 1.25rem !important; }}
+  
+  /* Reduce metric padding */
+  [data-testid="stMetric"] {{ padding: 0.75rem !important; }}
+  
+  /* Adjust stat box text sizes */
+  .stat-val {{ font-size: 1.3rem !important; }}
+  .stat-lbl {{ font-size: 0.6rem !important; }}
+}}
 </style>
     """
     st.markdown(css, unsafe_allow_html=True)

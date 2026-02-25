@@ -90,7 +90,7 @@ def pg(title, sub=""):
     st.markdown(f'<div style="margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid {BORDER};"><h1 style="font-size:1.5rem;font-weight:800;color:{T1};letter-spacing:-.02em;margin-bottom:3px;">{title}</h1><p style="font-size:.8125rem;color:{T3};">{sub}</p></div>', unsafe_allow_html=True)
 
 def stat_box(val, lbl, c=BLUE):
-    st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-top:3px solid {c};border-radius:8px;padding:.9rem 1.1rem;text-align:center;box-shadow:0 1px 8px rgba(0,0,0,.06);"><div style="font-size:1.6rem;font-weight:800;color:{c};line-height:1;">{val}</div><div style="font-size:.68rem;font-weight:600;color:{T3};text-transform:uppercase;letter-spacing:.08em;margin-top:5px;">{lbl}</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="background:{SURFACE};border:1px solid {BORDER};border-top:3px solid {c};border-radius:8px;padding:.9rem 1.1rem;text-align:center;box-shadow:0 1px 8px rgba(0,0,0,.06);"><div class="stat-val" style="font-size:1.6rem;font-weight:800;color:{c};line-height:1;">{val}</div><div class="stat-lbl" style="font-size:.68rem;font-weight:600;color:{T3};text-transform:uppercase;letter-spacing:.08em;margin-top:5px;">{lbl}</div></div>', unsafe_allow_html=True)
 
 def pbar(pct, col):
     """Clean, single-line progress bar to prevent Streamlit rendering bugs."""
