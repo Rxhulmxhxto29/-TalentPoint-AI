@@ -1,0 +1,26 @@
+Priya Sharma
+Bangalore, India | priya.sharma@email.com
+
+SUMMARY
+Machine Learning Engineer specializing in Natural Language Processing and Computer Vision. Experienced in deploying transformer models and building end-to-end ML pipelines.
+
+EXPERIENCE
+AI Innovations Lab | ML Engineer | 2019 – Present
+- Implemented state-of-the-art NLP models (BERT, GPT) for sentiment analysis and entity recognition.
+- Developed a recommendation engine using collaborative filtering and deep learning.
+- Optimized model inference speed by 3x using TensorRT and ONNX quantization.
+
+Innovate AI | Data Scientist | 2017 – 2019
+- Built predictive models for customer churn using Scikit-learn and XGBoost.
+- Performed extensive EDA and feature engineering on large-scale datasets.
+- Deployed ML models as microservices using Flask and Docker on AWS.
+
+SKILLS
+- AI/ML: PyTorch, TensorFlow, Scikit-learn, Hugging Face Transformers
+- Languages: Python (Expert), R, SQL
+- NLP: NER, Text Summarization, BERT, Word2Vec
+- Tools: Docker, MLflow, Optuna, DVC
+
+EDUCATION
+Master of Science in Artificial Intelligence | Indian Institute of Science (IISc)
+B.Tech in Computer Science | IIT Delhi

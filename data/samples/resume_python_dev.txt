@@ -1,0 +1,25 @@
+Alex Rivera
+San Francisco, CA | alex.rivera@email.com | 555-0123
+
+SUMMARY
+Senior Python Developer with 8+ years of experience in building scalable backend systems, microservices, and high-performance APIs using FastAPI and Django.
+
+EXPERIENCE
+TechFlow Solutions | Senior Software Engineer | 2018 – Present
+- Led the redesign of the core payment processing engine, improving throughput by 40%.
+- Architected a distributed task queue using RabbitMQ and Celery for asynchronous processing.
+- Mentored junior developers and implemented CI/CD pipelines using GitHub Actions.
+
+DataCrunch Inc. | Software Engineer | 2015 – 2018
+- Developed RESTful APIs for data analytics dashboards.
+- Optimized database queries in PostgreSQL, reducing average response time by 500ms.
+- Containerized legacy applications using Docker for improved deployment consistency.
+
+SKILLS
+- Languages: Python, Go, SQL
+- Frameworks: FastAPI, Django, Flask, Pytest
+- Tools: Docker, Kubernetes, AWS (S3, EC2, RDS), Redis, Git
+- Others: Microservices, System Design, Agile Methodology
+
+EDUCATION
+B.S. in Computer Science | University of California, Berkeley

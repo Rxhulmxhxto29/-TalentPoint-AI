@@ -23,8 +23,9 @@ from fastapi import FastAPI  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
 
 from config import DATABASE_PATH, API_HOST, API_PORT  # type: ignore
-from app.database.init_db import initialize_database  # type: ignore
+from app.database.init_db import initialize_database, get_connection  # type: ignore
 from app.services.embedding_service import get_embedding_service  # type: ignore
+from app.services.sample_loader import load_sample_data  # type: ignore
 from app.api.routers import resumes, jobs, ranking, feedback, bias  # type: ignore
 
 logging.basicConfig(
@@ -58,6 +59,14 @@ async def lifespan(app: FastAPI):
     embedding_svc.load_model()
     embedding_svc.load_or_create_index()
     logger.info("Embedding model and FAISS index ready.")
+
+    # 3. Sample Data (automated indexing if empty)
+    logger.info("Checking for sample data...")
+    conn = get_connection(DATABASE_PATH)
+    try:
+        load_sample_data(conn)
+    finally:
+        conn.close()
 
     logger.info(f"API ready at http://{API_HOST}:{API_PORT}")
     logger.info("=== Startup complete ===")

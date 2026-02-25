@@ -1,0 +1,25 @@
+Jordan Smith
+London, UK | jordan.smith@email.com
+
+SUMMARY
+Passionate Frontend Developer with 5 years of experience creating responsive, user-friendly web applications using React, TypeScript, and modern CSS.
+
+EXPERIENCE
+Creative Web Studio | Senior Frontend Developer | 2020 – Present
+- Led the development of a complex SaaS dashboard using React and Redux Toolkit.
+- Improved web performance scores from 60 to 95+ using code-splitting and memoization.
+- Established a reusable UI component library using Tailwind CSS and Storybook.
+
+Frontend Systems | UI Developer | 2018 – 2020
+- Built responsive landing pages and interactive web features.
+- Collaborated with UX designers to translate Figma mockups into pixel-perfect code.
+- Integrated third-party APIs and handled state management using React Context.
+
+SKILLS
+- Frontend: React, Next.js, TypeScript, JavaScript (ES6+)
+- Styling: Tailwind CSS, Styled Components, SASS
+- Tools: Git, Webpack, Vite, Jest, Cypress
+- State Management: Redux, React Query, Zustand
+
+EDUCATION
+B.A. in Web Design & Interactive Media | University of the Arts London
