@@ -3,7 +3,7 @@ services:
     name: talentpoint-ai
     env: docker
     plan: starter
-    dockerFilePath: ./Dockerfile
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     envVars:
       - key: API_BASE_URL
