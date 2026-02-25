@@ -29,6 +29,28 @@ class PDFReport(FPDF):
         self.cell(0, 10, f"Page {self.page_no()} | AI-Aided Recruitment Insights", align="C")
 
 class ReportService:
+    def _sanitize_text(self, text: str) -> str:
+        """Replace common non-latin-1 characters with safe equivalents to avoid '?' in PDFs."""
+        if not text: return ""
+        replacements = {
+            "\u2022": "-",     # bullet
+            "\u2013": "-",     # en dash
+            "\u2014": "-",     # em dash
+            "\u201c": '"',     # smart open quote
+            "\u201d": '"',     # smart close quote
+            "\u2018": "'",     # smart open single quote
+            "\u2019": "'",     # smart close single quote
+            "\u2026": "...",   # ellipsis
+            "\u2122": "(TM)",  # trademark
+            "\u00ae": "(R)",   # registered
+            "\u00a9": "(C)",   # copyright
+            "\t": "    ",     # tabs to spaces
+        }
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+        # Final fallback for characters still outside latin-1
+        return text.encode("latin-1", "replace").decode("latin-1")
+
     def generate_resume_pdf(self, candidate_name: str, raw_text: str) -> bytes:
         """Create a clean PDF version of the resume text."""
         try:
@@ -38,15 +60,14 @@ class ReportService:
             # Title
             pdf.set_font("helvetica", "B", 20)
             pdf.set_text_color(15, 23, 42)
-            pdf.cell(0, 15, candidate_name, ln=True)
+            pdf.cell(0, 15, self._sanitize_text(candidate_name), ln=True)
             
             pdf.ln(5)
             
             # Body
             pdf.set_font("helvetica", size=10)
             pdf.set_text_color(51, 65, 85)
-            # Replace unsupported characters for standard fonts
-            safe_text = raw_text.encode("latin-1", "replace").decode("latin-1")
+            safe_text = self._sanitize_text(raw_text)
             pdf.multi_cell(0, 6, safe_text)
             
             return pdf.output()
@@ -68,7 +89,7 @@ class ReportService:
             # Job Title
             pdf.set_font("helvetica", "B", 18)
             pdf.set_text_color(15, 23, 42)
-            pdf.cell(0, 12, f"Ranking Report: {job_title}", ln=True)
+            pdf.cell(0, 12, f"Ranking Report: {self._sanitize_text(job_title)}", ln=True)
             
             pdf.ln(5)
             
@@ -114,7 +135,7 @@ class ReportService:
                 else: label = "Weak Match"
                 
                 pdf.cell(15, 8, str(c['rank']), border=1, align="C")
-                pdf.cell(75, 8, c.get('candidate_name', '—'), border=1, align="L")
+                pdf.cell(75, 8, self._sanitize_text(c.get('candidate_name', '—')), border=1, align="L")
                 pdf.cell(30, 8, score_pct, border=1, align="C")
                 pdf.cell(70, 8, label, border=1, align="C")
                 pdf.ln()
@@ -130,19 +151,17 @@ class ReportService:
                 for c in candidates[:5]: # type: ignore # Detailed view for top 5
                     pdf.set_font("helvetica", "B", 11)
                     pdf.set_text_color(15, 23, 42)
-                    pdf.cell(0, 8, f"#{c['rank']} {c.get('candidate_name', '—')} ({int(c['total_score']*100)}%)", ln=True)
+                    pdf.cell(0, 8, f"#{c['rank']} {self._sanitize_text(c.get('candidate_name', '—'))} ({int(c['total_score']*100)}%)", ln=True)
                     
                     pdf.set_font("helvetica", size=9)
                     pdf.set_text_color(71, 85, 105)
-                    expl_raw = c.get('explanation', '')
-                    expl = expl_raw.encode("latin-1", "replace").decode("latin-1")
+                    expl = self._sanitize_text(c.get('explanation', ''))
                     pdf.multi_cell(0, 5, f"AI Feedback: {expl}")
                     
                     # Skills match summary
                     matched_list = c.get('matched_skills', [])
                     if matched_list:
-                        matched_str = ", ".join(matched_list)
-                        matched = matched_str.encode("latin-1", "replace").decode("latin-1")
+                        matched = self._sanitize_text(", ".join(matched_list))
                         pdf.set_font("helvetica", "B", 9)
                         pdf.set_text_color(5, 150, 105)
                         pdf.ln(1) # Small gap
