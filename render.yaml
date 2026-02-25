@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: talentpoint-ai
+    env: docker
+    plan: starter # Requires at least 1GB RAM
+    dockerFilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: API_BASE_URL
+        fromService:
+          name: talentpoint-ai
+          type: web
+          property: host
+      - key: PORT
+        value: 8501
+    disk:
+      name: talentpoint-data
+      mountPath: /app/data
+      sizeGB: 1

@@ -59,7 +59,8 @@ def fetch_ranking_results(job_id):
 # Lock in the Design System
 inject_custom_css()
 
-API_BASE = "http://127.0.0.1:8000"
+import os
+API_BASE = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
