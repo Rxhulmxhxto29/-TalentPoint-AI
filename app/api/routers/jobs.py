@@ -106,14 +106,17 @@ def delete_job(job_id: int, db: sqlite3.Connection = Depends(get_db)):
         raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
 
     try:
-        # 1. Delete feedback for all rankings of this job
-        db.execute("DELETE FROM feedback WHERE ranking_id IN (SELECT id FROM rankings WHERE job_id = ?)", (job_id,))
+        # 1. Delete all feedback records associated with this job
+        db.execute("DELETE FROM feedback WHERE job_id = ?", (job_id,))
+        
         # 2. Delete other job-related logs
         db.execute("DELETE FROM bias_logs WHERE job_id = ?", (job_id,))
         db.execute("DELETE FROM weight_history WHERE job_id = ?", (job_id,))
+        
         # 3. Delete the rankings themselves
         db.execute("DELETE FROM rankings WHERE job_id = ?", (job_id,))
-        # 4. Finally delete the job
+        
+        # 4. Finally delete the job itself
         db.execute("DELETE FROM jobs WHERE id = ?", (job_id,))
         db.commit()
     except Exception as e:

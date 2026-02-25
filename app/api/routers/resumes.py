@@ -251,11 +251,14 @@ def delete_resume(resume_id: int, db: sqlite3.Connection = Depends(get_db)):
         raise HTTPException(status_code=404, detail=f"Resume {resume_id} not found")
 
     try:
-        # 1. Delete feedback for all rankings of this resume
-        db.execute("DELETE FROM feedback WHERE ranking_id IN (SELECT id FROM rankings WHERE resume_id = ?)", (resume_id,))
+        # 1. Delete all feedback records associated with this resume
+        # (References: feedback.resume_id and feedback.ranking_id)
+        db.execute("DELETE FROM feedback WHERE resume_id = ?", (resume_id,))
+        
         # 2. Delete the rankings for this resume
         db.execute("DELETE FROM rankings WHERE resume_id = ?", (resume_id,))
-        # 3. Finally delete the resume
+        
+        # 3. Finally delete the resume itself
         db.execute("DELETE FROM resumes WHERE id = ?", (resume_id,))
         db.commit()
     except Exception as e:
