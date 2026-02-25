@@ -197,7 +197,7 @@ def _compute_duration_years(start: str, end: str) -> float:
         end_year, end_month = parse_date(end)
 
     total_months = (end_year - start_year) * 12 + (end_month - start_month)
-    return max(0.0, float(round(total_months / 12.0, 2)))
+    return max(0.0, float(round(total_months / 12.0, 2)))  # type: ignore
 
 
 def _parse_experience_section(lines: list[str]) -> tuple[list[dict], float]:
@@ -256,7 +256,7 @@ def _parse_experience_section(lines: list[str]) -> tuple[list[dict], float]:
             # Add month-based experience (converted to fractional years) if year-based wasn't found or is smaller
             # This handles cases like "6 months experience" vs "0.5 years"
             mo_yoe = max(float(m) for m in month_matches) / 12.0
-            total_years = max(yoe, float(round(mo_yoe, 2)))
+            total_years = max(yoe, float(round(mo_yoe, 2)))  # type: ignore
         else:
             total_years = yoe
 

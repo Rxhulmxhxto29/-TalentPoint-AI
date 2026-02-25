@@ -72,12 +72,12 @@ def _extract_experience_requirements(text: str) -> tuple[float, Optional[float]]
                 # Range pattern: "3-5 years" or "6-12 months"
                 v1, v2 = float(first[0]), float(first[1])
                 if "month" in pattern.pattern:
-                    return round(v1 / 12.0, 2), round(v2 / 12.0, 2)
+                    return round(v1 / 12.0, 2), round(v2 / 12.0, 2)  # type: ignore
                 return v1, v2
             elif isinstance(first, str):
                 v = float(first)
                 if "month" in pattern.pattern:
-                    return round(v / 12.0, 2), None
+                    return round(v / 12.0, 2), None  # type: ignore
                 return v, None
     return 0.0, None
 
