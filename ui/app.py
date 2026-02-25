@@ -277,7 +277,10 @@ elif page == "Results":
     c1, c2, c3 = st.columns([2,1.2,1])
     with c1: sel = st.selectbox("Job", list(jopts.keys()), label_visibility="collapsed")
     job_id = jopts[sel]
-    with c2: sprio = st.toggle("Skills Priority", help="Dampen experience penalties to prioritize candidate potential and skills.")
+    with c2: 
+        sprio = st.toggle("Skills Priority", help="Dampen experience penalties to prioritize candidate potential and skills.")
+        if sprio:
+            st.caption("✨ Skills-First mode active. Click 'Run Scoring' to apply boost.")
     with c3:
         if st.button("Run Scoring", use_container_width=True):
             _, _model_ready = check_health()
