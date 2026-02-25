@@ -178,7 +178,7 @@ def _compute_duration_years(start: str, end: str) -> float:
         match_full = re.search(r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{4})", s, re.IGNORECASE)
         if match_full:
             months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
-            month_idx = months.index(match_full.group(1).lower()[:3]) + 1
+            month_idx = months.index(match_full.group(1).lower()[:3]) + 1  # type: ignore
             return int(match_full.group(2)), month_idx
         
         # Try year only
