@@ -5,7 +5,6 @@
 # pyre-ignore[21]
 import streamlit as st  # type: ignore
 import json
-import textwrap
 import plotly.graph_objects as go  # type: ignore
 import requests  # type: ignore
 
@@ -373,35 +372,13 @@ elif page == "Results":
         r6.markdown(f'<div class="desktop-only" style="{rs} display:flex; align-items:center; justify-content:flex-start;">{badge(lbl,fg,bg2,bd2)}</div>', unsafe_allow_html=True)
 
         # ── MOBILE CARD (Single column) ──
-        mobile_html = textwrap.dedent(f"""
-            <div class="mobile-only" style="background:{row_bg}; border:1px solid {BORDER if not is_picked else BLUE_BD}; border-radius:12px; padding:18px; margin-bottom:14px; box-shadow:0 4px 12px rgba(0,0,0,0.06); border-left: 4px solid {fg};">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
-                    <div style="flex:1;">
-                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-                            <span style="font-size:0.7rem; font-weight:800; color:{T4}; text-transform:uppercase; letter-spacing:0.05em;">Rank #{rank}</span>
-                            {boost_tag if boost_tag else ""}
-                        </div>
-                        <div style="font-size:1.05rem; font-weight:700; color:{T1}; line-height:1.3;">{name}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:1.4rem; font-weight:800; color:{fg}; line-height:1;">{pct}<small style="font-size:0.7rem; opacity:0.8;">%</small></div>
-                        <div style="font-size:0.6rem; color:{T4}; text-transform:uppercase; font-weight:700; margin-top:4px;">Match</div>
-                    </div>
-                </div>
-                
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px; padding:12px; background:{BG}; border-radius:8px; border:1px solid {BORDER};">
-                    <div><div style="font-size:0.55rem; color:{T3}; text-transform:uppercase; font-weight:700; margin-bottom:4px;">Skills</div><div style="font-size:0.85rem; font-weight:800; color:{T1};">{int(sk*100)}%</div></div>
-                    <div><div style="font-size:0.55rem; color:{T3}; text-transform:uppercase; font-weight:700; margin-bottom:4px;">Exp</div><div style="font-size:0.85rem; font-weight:800; color:{T1};">{int(ex*100)}%</div></div>
-                    <div><div style="font-size:0.55rem; color:{T3}; text-transform:uppercase; font-weight:700; margin-bottom:4px;">Role</div><div style="font-size:0.85rem; font-weight:800; color:{T1};">{int(rf*100)}%</div></div>
-                </div>
-                
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    {badge(lbl, fg, bg2, bd2)}
-                    <div style="font-size:0.72rem; color:{BLUE}; font-weight:600; cursor:pointer;">Tap for details →</div>
-                </div>
-            </div>
-        """).strip()
-        st.markdown(mobile_html, unsafe_allow_html=True)
+        # Use flat string concatenation to avoid Markdown's 4-space indent code-block trigger
+        m_head = f'<div class="mobile-only" style="background:{row_bg}; border:1px solid {BORDER if not is_picked else BLUE_BD}; border-radius:12px; padding:18px; margin-bottom:14px; box-shadow:0 4px 12px rgba(0,0,0,0.06); border-left:4px solid {fg};">'
+        m_row1 = f'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;"><div style="flex:1;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="font-size:0.7rem;font-weight:800;color:{T4};text-transform:uppercase;letter-spacing:0.05em;">Rank #{rank}</span>{boost_tag if boost_tag else ""}</div><div style="font-size:1.05rem;font-weight:700;color:{T1};line-height:1.3;">{name}</div></div><div style="text-align:right;"><div style="font-size:1.4rem;font-weight:800;color:{fg};line-height:1;">{pct}<small style="font-size:0.7rem;opacity:0.8;">%</small></div><div style="font-size:0.6rem;color:{T4};text-transform:uppercase;font-weight:700;margin-top:4px;">Match</div></div></div>'
+        m_stats = f'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;padding:12px;background:{BG};border-radius:8px;border:1px solid {BORDER};"><div><div style="font-size:0.55rem;color:{T3};text-transform:uppercase;font-weight:700;margin-bottom:4px;">Skills</div><div style="font-size:0.85rem;font-weight:800;color:{T1};">{int(sk*100)}%</div></div><div><div style="font-size:0.55rem;color:{T3};text-transform:uppercase;font-weight:700;margin-bottom:4px;">Exp</div><div style="font-size:0.85rem;font-weight:800;color:{T1};">{int(ex*100)}%</div></div><div><div style="font-size:0.55rem;color:{T3};text-transform:uppercase;font-weight:700;margin-bottom:4px;">Role</div><div style="font-size:0.85rem;font-weight:800;color:{T1};">{int(rf*100)}%</div></div></div>'
+        m_foot = f'<div style="display:flex;justify-content:space-between;align-items:center;">{badge(lbl,fg,bg2,bd2)}<div style="font-size:0.72rem;color:{BLUE};font-weight:600;cursor:pointer;">Tap for details →</div></div></div>'
+        
+        st.markdown(m_head + m_row1 + m_stats + m_foot, unsafe_allow_html=True)
 
     st.markdown(f'<div style="font-size:.72rem;color:{T4};margin-top:10px;">Generated: {res.get("generated_at","")[:19].replace("T"," ")} UTC</div>', unsafe_allow_html=True)
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
