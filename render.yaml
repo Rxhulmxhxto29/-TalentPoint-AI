@@ -2,7 +2,7 @@ services:
   - type: web
     name: talentpoint-ai
     env: docker
-    plan: starter
+    plan: free
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     envVars:
@@ -10,7 +10,3 @@ services:
         value: http://127.0.0.1:8000
       - key: PORT
         value: 8501
-    disk:
-      name: talentpoint_data
-      mountPath: /app/data
-      sizeGB: 1
