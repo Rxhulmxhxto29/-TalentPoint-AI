@@ -1,24 +1,20 @@
-# AI Resume Screening & Candidate Ranking System
+# TalentPoint AI — Smart Resume Ranking 🛡️📊
 
-> **A production-style, explainable, bias-aware Decision-Support System for HR Tech.**
+> **An enterprise-grade, explainable, and bias-aware Decision-Support System for modern recruitment.**
 >
-> 100% free and open-source · Runs fully locally · No paid APIs · Interview-defensible
+> 100% free and open-source · Fully Local NLP · No Cloud APIs · Mobile-Responsive UI
 
 ---
 
-## Problem Statement
+## The Vision
 
-Hiring decisions involve unstructured, noisy, and subjective data. Resumes are inconsistently formatted. Job descriptions are ambiguous. Human reviewers are time-constrained and susceptible to implicit bias.
+**TalentPoint AI** transforms the noisy process of manual resume screening into a precise, data-driven experience. Built for scale and fairness, it leverages deep semantic embeddings to understand candidate potential beyond simple keywords.
 
-This system addresses that by:
-- Parsing resumes and job descriptions into structured representations
-- Using semantic embeddings to understand intent, not just keywords
-- Ranking candidates using a transparent, multi-factor scoring model
-- Generating human-readable explanations for every ranking decision
-- Surfacing potential bias signals for recruiter awareness
-- Improving scoring weights over time from recruiter feedback
-
-**This is a decision-support tool — not an automated decision-maker.** All final hiring decisions remain with the human recruiter.
+### 🌟 Key Enhancements
+- **Mobile-First Experience**: High-density ranking tables that gracefully transform into elegant card-based views on smartphones.
+- **Multi-Domain Intelligence**: Expanded support for Finance, Management, Operations, and HR domains.
+- **Precision Experience Parsing**: High-precision "Month-to-Year" extraction ensures fair scoring for interns and fast-track talent.
+- **Recruiter Feedback Loop**: A production-ready learning loop that adapts scoring weights based on your hiring preferences.
 
 ---
 

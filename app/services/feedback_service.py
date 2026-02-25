@@ -83,19 +83,6 @@ def get_feedback_stats(conn: sqlite3.Connection, job_id: Optional[int] = None) -
     if job_id is not None:
         where_clause = "WHERE job_id = ?"
         params = [job_id]
-        # The following lines were part of the user's diff, but `stats` and `res` are undefined.
-        # Assuming they were meant for a different context or were placeholders.
-        # if stats and res is not None:
-    # NOTE: `stats`, `res`, and `sec` are not defined in this scope.
-    # This block is uncommented as per user instruction, but will cause NameErrors.
-    # It's likely intended to be used in a calling context (e.g., app.py) where these are defined.
-    # For faithful application of the diff, it's included as requested.
-    # If `sec` is a function, it would also need to be imported or defined.
-    # For now, assuming `sec` is available in the environment where this code runs.
-    # To avoid immediate NameError, these lines are kept commented out.
-    # if stats and res is not None:
-    #     job_title = str(res.get("job_title", ""))
-    #     sec(f"Feedback Summary — {job_title}")
 
     # Subquery to get the latest decision for each unique (job_id, resume_id) pair
     latest_decisions_query = """
