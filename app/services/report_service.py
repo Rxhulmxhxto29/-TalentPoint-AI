@@ -134,19 +134,27 @@ class ReportService:
                     
                     pdf.set_font("helvetica", size=9)
                     pdf.set_text_color(71, 85, 105)
-                    expl = c.get('explanation', '').encode("latin-1", "replace").decode("latin-1")
+                    expl_raw = c.get('explanation', '')
+                    expl = expl_raw.encode("latin-1", "replace").decode("latin-1")
                     pdf.multi_cell(0, 5, f"AI Feedback: {expl}")
                     
                     # Skills match summary
-                    matched = ", ".join(c.get('matched_skills', []))
-                    if matched:
+                    matched_list = c.get('matched_skills', [])
+                    if matched_list:
+                        matched_str = ", ".join(matched_list)
+                        matched = matched_str.encode("latin-1", "replace").decode("latin-1")
                         pdf.set_font("helvetica", "B", 9)
                         pdf.set_text_color(5, 150, 105)
+                        pdf.ln(1) # Small gap
                         pdf.multi_cell(0, 5, f"Matched Skills: {matched}")
                     
-                    pdf.ln(5)
-                    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-                    pdf.ln(5)
+                    pdf.ln(2)
+                    last_y = pdf.get_y()
+                    if last_y > 270: # Avoid line at the very bottom
+                        pdf.add_page()
+                    else:
+                        pdf.line(10, last_y, 200, last_y)
+                        pdf.ln(5)
             
             return pdf.output()
         except Exception as e:
