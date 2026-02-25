@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 REQUIRED_SECTION_PATTERNS = re.compile(
-    r"(required|must\s+have|mandatory|essential|minimum\s+qualifications?|"
+    r"(requirements?|qualifications?|required|must\s+have|mandatory|essential|minimum\s+qualifications?|"
     r"we\s+require|you\s+will\s+need|what\s+you(?:'ll)?\s+bring)",
     re.IGNORECASE,
 )

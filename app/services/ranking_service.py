@@ -53,7 +53,7 @@ def _compute_skill_match_score(
     )
 
     # Jaccard over preferred skills (secondary, lower weight)
-    _, _, jaccard_pref = extractor.compute_skill_overlap(
+    matched_pref, _, jaccard_pref = extractor.compute_skill_overlap(
         resume_skills, preferred_skills
     ) if preferred_skills else ([], [], 0.0)
 
@@ -79,7 +79,10 @@ def _compute_skill_match_score(
     # Final skill score: blend Jaccard and embedding similarity
     skill_score = 0.60 * skill_jaccard + 0.40 * embedding_boost
 
-    return float(min(1.0, max(0.0, skill_score))), matched_req, missing_req
+    # Combine matched skills for display
+    matched_all = sorted(list(set(matched_req + matched_pref)))
+
+    return float(min(1.0, max(0.0, skill_score))), matched_all, missing_req
 
 
 def _compute_experience_alignment_score(
