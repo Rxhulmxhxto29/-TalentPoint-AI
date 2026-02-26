@@ -141,6 +141,25 @@ with st.sidebar:
 
     # Two stat pills — inline, no transforms/absolute positioning
     st.markdown(f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem;"><div style="background:{BLUE_LT};border:1px solid {BLUE_BD};border-radius:8px;padding:12px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;color:{BLUE};">{nr}</div><div style="font-size:.65rem;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin-top:3px;">Resumes</div></div><div style="background:{BLUE_LT};border:1px solid {BLUE_BD};border-radius:8px;padding:12px;text-align:center;"><div style="font-size:1.4rem;font-weight:800;color:{BLUE};">{nj}</div><div style="font-size:.65rem;color:{T3};text-transform:uppercase;letter-spacing:.07em;margin-top:3px;">Jobs</div></div></div><div style="font-size:.7rem;color:{T4};line-height:1.6;padding:0 2px;border-top:1px solid {BORDER};padding-top:.75rem;">Final decisions rest with the recruiter. Scores are assistive only.</div>', unsafe_allow_html=True)
+    
+    st.markdown(f'<div style="margin:1rem 0;border-top:1px solid {BORDER};"></div>', unsafe_allow_html=True)
+
+    with st.expander("📖 Step-by-Step Guide", expanded=False):
+        st.markdown(f"""
+        <div style="font-size:.8rem;color:{T2};line-height:1.6;">
+            <b>Welcome to TalentPoint AI!</b> Follow these steps to evaluate candidates:
+            <br><br>
+            <b>1. <span style="color:{BLUE};">Input:</span></b> Upload candidate resumes (PDF/DOCX/TXT) and define the Job Description they are applying for.
+            <br><br>
+            <b>2. <span style="color:{BLUE};">Results:</span></b> Select the Job and click 'Run Scoring' to let the AI rank candidates based on Skills, Experience, and Role Fit.
+            <br><br>
+            <b>3. <span style="color:{BLUE};">Explanations:</span></b> Review detailed breakdowns of why each candidate received their specific score, including matched skills and gaps.
+            <br><br>
+            <b>4. <span style="color:{BLUE};">Fairness Audit:</span></b> Run the bias detector to ensure the AI isn't overly fixated on years of experience or specific keywords.
+            <br><br>
+            <b>5. <span style="color:{BLUE};">Feedback:</span></b> Record your final human decision (Progress/Decline) for each candidate. This helps the AI learn your preferences over time.
+        </div>
+        """, unsafe_allow_html=True)
 
 
 # ── PAGE 1: INPUT ─────────────────────────────────────────────────────────────
