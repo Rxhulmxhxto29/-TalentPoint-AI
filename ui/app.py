@@ -68,11 +68,16 @@ import os
 # Inside the Docker container, Streamlit talks to FastAPI on localhost:8000
 API_BASE = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 
+# Optimized session for Hugging Face Spaces:
+# Reusing a connection and bypassing environment proxies eliminates the 5s network/proxy delay.
+_api_session = requests.Session()
+_api_session.trust_env = False
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def api(method, path, **kw):
     try:
-        r = getattr(requests, method)(f"{API_BASE}{path}", timeout=60, **kw)
+        r = getattr(_api_session, method)(f"{API_BASE}{path}", timeout=60, **kw)
         if r.status_code == 204 or not r.content:
             return ({}, None) if r.status_code < 300 else (None, f"HTTP {r.status_code}")
         try:
@@ -200,9 +205,8 @@ if page == "Input":
                         show_text = st.toggle("View Text", key=f"vtog_{r['id']}")
                     with b2:
                         if st.button("Download PDF", key=f"d_{r['id']}", use_container_width=True):  # type: ignore
-                            import requests as _r  # type: ignore
                             with st.spinner("Generating…"):
-                                pr = _r.get(f"{API_BASE}/resumes/{r['id']}/pdf", timeout=30)
+                                pr = _api_session.get(f"{API_BASE}/resumes/{r['id']}/pdf", timeout=30)
                             if pr.status_code == 200:
                                 st.download_button("Save PDF", pr.content, f"{r['name'].replace(' ','_')}.pdf", "application/pdf", key=f"ds_{r['id']}", use_container_width=True)
                             else: st.error("PDF failed.")
@@ -386,9 +390,8 @@ elif page == "Results":
     dc, _ = st.columns([1,2])
     with dc:
         if st.button("Download Report (PDF)", use_container_width=True, key="dl_rpt"):
-            import requests as _r  # type: ignore
             with st.spinner("Generating…"):
-                rp = _r.get(f"{API_BASE}/rank/{job_id}/report.pdf", timeout=30)
+                rp = _api_session.get(f"{API_BASE}/rank/{job_id}/report.pdf", timeout=30)
             if rp.status_code == 200:
                 safe = res.get("job_title","report").replace(" ","_").lower()
                 st.download_button("Save Report", rp.content, f"ranking_{safe}.pdf", "application/pdf", use_container_width=True, key="sv_rpt")
