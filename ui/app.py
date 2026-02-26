@@ -34,14 +34,14 @@ def slabel(s):
     if s >= .45: return "⭐⭐⭐"
     return "⭐"
 
-@st.cache_data(ttl=10)
+@st.cache_data(ttl=10, show_spinner=False)
 def fetch_stats():
     """Cached fetch of basic counts to speed up sidebar reruns."""
     rd, _ = api("get", "/resumes/")
     jd_s, _ = api("get", "/jobs/")
     return (rd["total"] if rd else 0), (jd_s["total"] if jd_s else 0)
 
-@st.cache_data(ttl=10)
+@st.cache_data(ttl=15, show_spinner=False)
 def check_health():
     """Cached health check. Returns (api_online, model_ready)."""
     health, _ = api("get", "/health")
@@ -49,13 +49,13 @@ def check_health():
         return False, False
     return True, health.get("model_ready", True)
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=30, show_spinner=False)
 def fetch_jobs():
     """Cached jobs list."""
     res, err = api("get", "/jobs/")
     return res.get("jobs", []) if res else [], err
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=30, show_spinner=False)
 def fetch_ranking_results(job_id):
     """Cached ranking results."""
     res, err = api("get", f"/rank/{job_id}/results")
